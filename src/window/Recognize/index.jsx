@@ -1,84 +1,69 @@
-import { readDir, BaseDirectory, readTextFile, exists } from '@tauri-apps/api/fs';
-import { appConfigDir, join } from '@tauri-apps/api/path';
-import { convertFileSrc } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
 import React, { useState, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { Button } from '@nextui-org/react';
 import { BsPinFill } from 'react-icons/bs';
-import { atom, useAtom } from 'jotai';
 
 import WindowControl from '../../components/WindowControl';
 import { store } from '../../utils/store';
 import { osType } from '../../utils/env';
-import { useConfig } from '../../hooks';
+import { useConfig, useServiceInstanceList } from '../../hooks';
+import { dismissWindow, WINDOW_HIDE_EVENT } from '../../utils/window';
 import ControlArea from './ControlArea';
 import ImageArea from './ImageArea';
 import TextArea from './TextArea';
 
-export const pluginListAtom = atom();
-
 let blurTimeout = null;
+let unlistenBlurPromise = null;
 
 const listenBlur = () => {
-    return listen('tauri://blur', () => {
+    if (unlistenBlurPromise) {
+        return;
+    }
+    unlistenBlurPromise = listen('tauri://blur', () => {
         if (appWindow.label === 'recognize') {
             if (blurTimeout) {
                 clearTimeout(blurTimeout);
             }
-            // 50ms后关闭窗口，因为在 windows 下拖动窗口时会先切换成 blur 再立即切换成 focus
-            // 如果直接关闭将导致窗口无法拖动
+            // 50ms后隐藏窗口，因为在 windows 下拖动窗口时会先切换成 blur 再立即切换成 focus
+            // 如果直接隐藏将导致窗口无法拖动
             blurTimeout = setTimeout(async () => {
-                await appWindow.close();
+                await dismissWindow();
             }, 50);
         }
     });
 };
 
-let unlisten = listenBlur();
 // 取消 blur 监听
 const unlistenBlur = () => {
-    unlisten.then((f) => {
-        f();
-    });
+    if (blurTimeout) {
+        clearTimeout(blurTimeout);
+    }
+    if (unlistenBlurPromise) {
+        unlistenBlurPromise.then((f) => {
+            f();
+        });
+        unlistenBlurPromise = null;
+    }
 };
 
-// 监听 focus 事件取消 blurTimeout 时间之内的关闭窗口
+listenBlur();
+
+// 监听 focus 事件取消 blurTimeout 时间之内的隐藏窗口
 void listen('tauri://focus', () => {
     if (blurTimeout) {
         clearTimeout(blurTimeout);
     }
 });
 
+const eventKeyOf = (key) => key.replaceAll('.', '_').replaceAll('@', ':');
+
 export default function Recognize() {
-    const [pluginList, setPluginList] = useAtom(pluginListAtom);
     const [closeOnBlur] = useConfig('recognize_close_on_blur', false);
     const [pined, setPined] = useState(false);
-    const [serviceInstanceList] = useConfig('recognize_service_list', ['system', 'tesseract']);
+    const [serviceInstanceList] = useServiceInstanceList('recognize_service_list', ['system', 'tesseract']);
     const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(null);
 
-    const loadPluginList = async () => {
-        let temp = {};
-        if (await exists(`plugins/recognize`, { dir: BaseDirectory.AppConfig })) {
-            const plugins = await readDir(`plugins/recognize`, { dir: BaseDirectory.AppConfig });
-            for (const plugin of plugins) {
-                const infoStr = await readTextFile(`plugins/recognize/${plugin.name}/info.json`, {
-                    dir: BaseDirectory.AppConfig,
-                });
-                let pluginInfo = JSON.parse(infoStr);
-                if ('icon' in pluginInfo) {
-                    const appConfigDirPath = await appConfigDir();
-                    const iconPath = await join(
-                        appConfigDirPath,
-                        `/plugins/recognize/${plugin.name}/${pluginInfo.icon}`
-                    );
-                    pluginInfo.icon = convertFileSrc(iconPath);
-                }
-                temp[plugin.name] = pluginInfo;
-            }
-        }
-        setPluginList({ ...temp });
-    };
     const loadServiceInstanceConfigMap = async () => {
         const config = {};
         for (const serviceInstanceKey of serviceInstanceList) {
@@ -89,21 +74,44 @@ export default function Recognize() {
     useEffect(() => {
         if (serviceInstanceList !== null) {
             loadServiceInstanceConfigMap();
+            // the window is kept alive, so pick up service config edits made in the config window
+            const unlistenList = serviceInstanceList.map((key) =>
+                listen(`${eventKeyOf(key)}_changed`, (e) => {
+                    setServiceInstanceConfigMap((old) => ({ ...old, [key]: e.payload ?? {} }));
+                })
+            );
+            return () => {
+                unlistenList.forEach((unlisten) => {
+                    unlisten.then((f) => {
+                        f();
+                    });
+                });
+            };
         }
     }, [serviceInstanceList]);
 
+    // 失焦是否自动隐藏窗口（置顶时不隐藏）
     useEffect(() => {
-        loadPluginList();
-    }, []);
-    // 是否自动关闭窗口
-    useEffect(() => {
-        if (closeOnBlur !== null && !closeOnBlur) {
+        if (closeOnBlur === null) return;
+        if (closeOnBlur && !pined) {
+            listenBlur();
+        } else {
             unlistenBlur();
         }
-    }, [closeOnBlur]);
+    }, [closeOnBlur, pined]);
+    // 窗口常驻：隐藏后取消置顶，与新开窗口一致
+    useEffect(() => {
+        const reset = () => {
+            appWindow.setAlwaysOnTop(false);
+            setPined(false);
+        };
+        window.addEventListener(WINDOW_HIDE_EVENT, reset);
+        return () => {
+            window.removeEventListener(WINDOW_HIDE_EVENT, reset);
+        };
+    }, []);
 
     return (
-        pluginList &&
         serviceInstanceConfigMap !== null && (
             <div
                 className={`bg-background h-screen ${
@@ -122,15 +130,8 @@ export default function Recognize() {
                         disableAnimation
                         className='my-auto mx-[5px] bg-transparent'
                         onPress={() => {
-                            if (pined) {
-                                if (closeOnBlur) {
-                                    unlisten = listenBlur();
-                                }
-                                appWindow.setAlwaysOnTop(false);
-                            } else {
-                                unlistenBlur();
-                                appWindow.setAlwaysOnTop(true);
-                            }
+                            // blur listening follows `pined` in the effect above
+                            appWindow.setAlwaysOnTop(!pined);
                             setPined(!pined);
                         }}
                     >

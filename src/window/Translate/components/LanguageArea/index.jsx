@@ -7,6 +7,7 @@ import { atom, useAtom, useAtomValue } from 'jotai';
 import { languageList } from '../../../../utils/language';
 import { detectLanguageAtom } from '../SourceArea';
 import { useConfig } from '../../../../hooks';
+import { WINDOW_HIDE_EVENT } from '../../../../utils/window';
 
 export const sourceLanguageAtom = atom();
 export const targetLanguageAtom = atom();
@@ -29,6 +30,22 @@ export default function LanguageArea() {
         if (translateTargetLanguage) {
             setTargetLanguage(translateTargetLanguage);
         }
+    }, [translateSourceLanguage, translateTargetLanguage]);
+
+    // the window is kept alive after being dismissed: start the next activation from the configured languages
+    useEffect(() => {
+        const reset = () => {
+            if (translateSourceLanguage) {
+                setSourceLanguage(translateSourceLanguage);
+            }
+            if (translateTargetLanguage) {
+                setTargetLanguage(translateTargetLanguage);
+            }
+        };
+        window.addEventListener(WINDOW_HIDE_EVENT, reset);
+        return () => {
+            window.removeEventListener(WINDOW_HIDE_EVENT, reset);
+        };
     }, [translateSourceLanguage, translateTargetLanguage]);
 
     useEffect(() => {

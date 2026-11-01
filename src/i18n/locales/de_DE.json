@@ -5,7 +5,6 @@
             "cancel": "Abbrechen",
             "save": "Speichern",
             "write_clipboard": "In die Zwischenablage schreiben",
-            "plugin": "Plugin",
             "coming": "Bald verfügbar…",
             "clear": "Leeren"
         },
@@ -47,9 +46,6 @@
                 "label": "Allgemein",
                 "title": "Allgemeine Einstellungen",
                 "auto_start": "Beim Start des Computers starten",
-                "check_update": "Beim Start Updates überprüfen",
-                "server_port": "Überwachungsport",
-                "server_port_change": "Überwachungsport wurde geändert, für Änderungen neu starten",
                 "app_language": "Anzeigesprache",
                 "app_theme": "App Thema",
                 "app_font": "Schriftart",
@@ -101,7 +97,6 @@
                 "target": "Übersetzung",
                 "source_target": "Quelltext + Übersetzung",
                 "disable": "Deaktivieren",
-                "history_disable": "Verlauf deaktivieren",
                 "incremental_translate": "Inkrementelle Übersetzung",
                 "dynamic_translate": "Dynamische Übersetzung",
                 "delete_newline": "Automatisches Löschen von Zeilenumbrüchen",
@@ -158,42 +153,11 @@
                 "label": "Dienst",
                 "title": "Diensteinstellungen",
                 "translate": "Übersetzung",
-                "tts": "TTS",
                 "recognize": "Texterkennung",
-                "collection": "Vokabelheft",
                 "least": "Bitte mindestens einen behalten",
                 "add_builtin_service": "Internen Dienst hinzufügen",
-                "add_external_service": "Externes Plugin hinzufügen",
                 "add_service": "Dienst hinzufügen",
-                "test_failed": "Test fehlgeschlagen",
-                "install_plugin": "Externes Plugin installieren",
-                "view_plugin_list": "Plugin-Liste anzeigen",
-                "uninstall_success": "Plugin erfolgreich deinstalliert",
-                "homepage": "Plugin-Homepage"
-            },
-            "history": {
-                "label": "Verlauf",
-                "title": "Verlauf"
-            },
-            "backup": {
-                "label": "Backup",
-                "title": "Backup-Einstellungen",
-                "type": "Diensttyp",
-                "webdav": "WebDav",
-                "local": "Lokal",
-                "aliyun": "Aliyun Drive",
-                "webdav_url": "WebDav-URL",
-                "username": "Benutzername",
-                "password": "Passwort",
-                "logout": "Abmelden",
-                "aliyun_login_first": "Bitte zuerst per QR-Code anmelden",
-                "login_success": "Anmeldung erfolgreich",
-                "backup": "Sichern",
-                "restore": "Backup wiederherstellen",
-                "list": "Backup-Liste",
-                "load_success": "Backup erfolgreich geladen",
-                "backup_success": "Backup erfolgreich durchgeführt",
-                "empty": "Sie haben noch keine Backups"
+                "test_failed": "Test fehlgeschlagen"
             },
             "about": {
                 "label": "Über die App",
@@ -204,7 +168,6 @@
                 "issue": "Problem melden",
                 "email": "E-Mail",
                 "community": "Community-Forum",
-                "check_update": "Auf Updates prüfen",
                 "view_log": "Logdatei anzeigen",
                 "view_config": "Konfigurationsdatei anzeigen",
                 "qq_channel": "QQ Kanal",
@@ -212,16 +175,6 @@
                 "telegram": "Telegram",
                 "discussion": "Diskussion auf GitHub"
             }
-        },
-        "updater": {
-            "title": "Updates prüfen",
-            "latest": "## Die neueste Version ist bereits installiert",
-            "progress": "Download-Fortschritt",
-            "update": "Aktualisieren",
-            "downloading": "Herunterladen...",
-            "installing": "Installieren...",
-            "cancel": "Abbrechen",
-            "installed": "Installation abgeschlossen, für Änderungen neu starten"
         },
         "services": {
             "help": "Konfigurationsanleitung",
@@ -412,30 +365,11 @@
                 "qrcode": {
                     "title": "QR-Code-Erkennung"
                 }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "title": "Lingva",
-                    "request_path": "Request-Pfad"
-                }
-            },
-            "collection": {
-                "anki": {
-                    "title": "Anki",
-                    "port": "Port"
-                },
-                "eudic": {
-                    "title": "Eudic",
-                    "name": "Name des Vokabelheftes",
-                    "token": "Token"
-                }
             }
         },
         "translate": {
             "translate": "Übersetzen",
-            "add_collection_success": "Erfolgreich hinzugefügt",
             "recognizing": "Erkennen...",
-            "speak": "Sprechen",
             "copy": "Kopieren",
             "retry": "Erneut versuchen",
             "delete_newline": "Zeilenumbruch löschen",

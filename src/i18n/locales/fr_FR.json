@@ -207,23 +207,6 @@
                 "system": {
                     "title": "Reconnaissance d'image du système"
                 }
-            },
-            "collection": {
-                "anki": {
-                    "port": "Port",
-                    "title": "Anki"
-                },
-                "eudic": {
-                    "token": "Jeton",
-                    "name": "Nom de la collection",
-                    "title": "Eudic"
-                }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "title": "Lingva",
-                    "request_path": "Chemin de la requête"
-                }
             }
         },
         "languages": {
@@ -260,7 +243,6 @@
             "he": "Hébreu"
         },
         "common": {
-            "plugin": "Extension",
             "cancel": "Annuler",
             "write_clipboard": "Copier dans le presse-papiers",
             "ok": "Ok",
@@ -295,10 +277,7 @@
                     "system": "Système",
                     "dark": "Sombre"
                 },
-                "server_port_change": "Le port d'écoute a été modifié. Veuillez relancer l'application pour que les modifications prennent effet",
-                "server_port": "Port d'écoute",
                 "proxy_error": "Veuillez compléter l'hôte et le port",
-                "check_update": "Vérifier les mises à jour",
                 "app_language": "Langue d'affichage",
                 "transparent": "Effet de transparence",
                 "title": "Paramètres généraux",
@@ -358,28 +337,7 @@
                     "16": "Normal (16px)",
                     "10": "Très très petit (10px)",
                     "18": "Grand (18px)"
-                },
-                "history_disable": "Désactiver l'historique"
-            },
-            "backup": {
-                "local": "Local",
-                "empty": "Vous n'avez encore rien sauvegardé",
-                "restore": "Restaurer",
-                "title": "Paramètres de sauvegarde",
-                "webdav": "WebDav",
-                "load_success": "La sauvegarde a bien été chargée",
-                "list": "Liste de sauvegardes",
-                "backup": "Sauvegarde",
-                "password": "Mot de passe",
-                "webdav_url": "URL WebDav",
-                "username": "Nom d'utilisateur",
-                "backup_success": "Sauvegarde réussie",
-                "label": "Sauvegarde",
-                "type": "Type de service",
-                "logout": "Déconnexion",
-                "aliyun_login_first": "Veuillez d'abord scanner le code pour vous connecter.",
-                "login_success": "Connexion réussie",
-                "aliyun": "Aliyun Drive"
+                }
             },
             "recognize": {
                 "delete_newline": "Suppression automatique des retours à la ligne",
@@ -403,16 +361,9 @@
             },
             "service": {
                 "add_service": "Ajouter un service",
-                "uninstall_success": "L'extension a bien été désinstallée",
                 "least": "Veuillez en conserver au moins un",
-                "tts": "TTS",
-                "homepage": "Page d'accueil",
                 "translate": "Traduire",
                 "recognize": "Reconnaissance",
-                "collection": "Collection",
-                "view_plugin_list": "Voir la liste des extensions",
-                "install_plugin": "Installer l'extension",
-                "add_external_service": "Ajouter une extension",
                 "title": "Paramètres de service",
                 "add_builtin_service": "Ajouter un service intégré",
                 "label": "Service",
@@ -422,7 +373,6 @@
                 "title": "À propos de l'application",
                 "qq_group": "Groupe QQ",
                 "website": "Site Web",
-                "check_update": "Vérifier les mises à jour",
                 "telegram": "Telegram",
                 "feedback": "Commentaires",
                 "label": "À propos",
@@ -434,31 +384,15 @@
                 "discussion": "Discussion GitHub",
                 "qq_channel": "Canal QQ",
                 "view_log": "Voir les journaux"
-            },
-            "history": {
-                "label": "Historique",
-                "title": "Historique"
             }
         },
         "translate": {
             "delete_newline": "Supprimer le retour à la ligne",
-            "add_collection_success": "L'élément a bien été ajouté à la collection",
             "retry": "Réessayer",
             "recognizing": "Reconnaissance…",
             "translate_back": "Revenir à la traduction d'origine",
             "translate": "Traduire",
-            "copy": "Copier",
-            "speak": "Écouter"
-        },
-        "updater": {
-            "installed": "Installation terminée. Relancez l'application pour que les modifications prennent effet",
-            "downloading": "Téléchargement…",
-            "update": "Mettre à jour",
-            "progress": "Progression du téléchargement",
-            "latest": "## La dernière version est installée",
-            "cancel": "Annuler",
-            "title": "Vérifier les mises à jour",
-            "installing": "Installation…"
+            "copy": "Copier"
         },
         "recognize": {
             "translate": "Traduire",

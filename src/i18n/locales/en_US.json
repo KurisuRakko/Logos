@@ -5,7 +5,6 @@
             "cancel": "Cancel",
             "save": "Save",
             "write_clipboard": "Write to Clipboard",
-            "plugin": "Plugin",
             "coming": "Coming soon…",
             "clear": "Clear"
         },
@@ -47,9 +46,6 @@
                 "label": "General",
                 "title": "General Settings",
                 "auto_start": "Auto Startup",
-                "check_update": "Check Update",
-                "server_port": "Listening Port",
-                "server_port_change": "The listening port has been changed, Please restart the application for the changes to take effect",
                 "app_language": "Display Language",
                 "app_theme": "Theme",
                 "app_font": "Font",
@@ -102,7 +98,6 @@
                 "target": "Target",
                 "source_target": "Source+Target",
                 "disable": "Disable",
-                "history_disable": "Disable History",
                 "incremental_translate": "Incremental Translation",
                 "dynamic_translate": "Dynamic Translation",
                 "delete_newline": "Delete Newline",
@@ -159,42 +154,11 @@
                 "label": "Service",
                 "title": "Service Settings",
                 "translate": "Translate",
-                "tts": "TTS",
                 "recognize": "Recognize",
-                "collection": "Collection",
                 "least": "Please keep at least one",
                 "add_builtin_service": "Add Builtin Service",
-                "add_external_service": "Add Extension",
                 "add_service": "Add Service",
-                "test_failed": "Test Failed",
-                "install_plugin": "Install Plugin",
-                "view_plugin_list": "View Plugin List",
-                "uninstall_success": "Plugin Uninstall Successfully",
-                "homepage": "Homepage"
-            },
-            "history": {
-                "label": "History",
-                "title": "History"
-            },
-            "backup": {
-                "label": "Backup",
-                "title": "Backup Settings",
-                "type": "Service Type",
-                "webdav": "WebDav",
-                "aliyun": "Aliyun Drive",
-                "local": "Local",
-                "webdav_url": "WebDav URL",
-                "username": "Username",
-                "password": "Password",
-                "logout": "Logout",
-                "aliyun_login_first": "Please scan the code to log in first.",
-                "login_success": "Login Success",
-                "backup": "Backup",
-                "restore": "Restore",
-                "list": "Backup List",
-                "load_success": "Load Backup Success",
-                "backup_success": "Backup Success",
-                "empty": "You have not backed up yet"
+                "test_failed": "Test Failed"
             },
             "about": {
                 "label": "About",
@@ -205,7 +169,6 @@
                 "issue": "Issue",
                 "email": "Email",
                 "community": "Community",
-                "check_update": "Check Update",
                 "view_log": "View Log",
                 "view_config": "View Config",
                 "qq_channel": "QQ Channel",
@@ -213,16 +176,6 @@
                 "telegram": "Telegram",
                 "discussion": "Github Discussion"
             }
-        },
-        "updater": {
-            "title": "Check Update",
-            "latest": "## The latest version is installed",
-            "progress": "Download Progress",
-            "update": "Update",
-            "downloading": "Downloading…",
-            "installing": "Installing…",
-            "cancel": "Cancel",
-            "installed": "Install completed, Restart the application for the changes to take effect"
         },
         "services": {
             "help": "Configuration Guide",
@@ -431,30 +384,11 @@
                 "qrcode": {
                     "title": "QR Code"
                 }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "title": "Lingva",
-                    "request_path": "Request Path"
-                }
-            },
-            "collection": {
-                "anki": {
-                    "title": "Anki",
-                    "port": "Port"
-                },
-                "eudic": {
-                    "title": "Eudic",
-                    "name": "Collection Name",
-                    "token": "Token"
-                }
             }
         },
         "translate": {
             "translate": "Translate",
-            "add_collection_success": "Add to collection successfully",
             "recognizing": "Recognizing…",
-            "speak": "Speak",
             "copy": "Copy",
             "retry": "Try again",
             "delete_newline": "Delete Newline",

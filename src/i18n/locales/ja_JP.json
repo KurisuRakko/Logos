@@ -7,11 +7,6 @@
                 "delete_newline": "改行を削除",
                 "source_language": "ソース言語"
             },
-            "backup": {
-                "title": "バックアップ設定",
-                "label": "バックアップ",
-                "type": "サービスの種類"
-            },
             "about": {
                 "title": "アプリケーションに関する",
                 "label": "に関する"
@@ -47,10 +42,8 @@
                 "app_theme": "テーマ",
                 "auto_start": "自動起動",
                 "proxy_change": "プロキシが変更されました。変更を有効にするためにアプリケーションを再起動してください",
-                "server_port_change": "リスニング・ポートが変更されました。変更を有効にするにはアプリケーションを再起動してください",
                 "app_language": "表示言語",
-                "app_font": "フォント",
-                "server_port": "リスニング・ポート"
+                "app_font": "フォント"
             },
             "hotkey": {
                 "label": "ホットキー",
@@ -64,10 +57,6 @@
             "service": {
                 "title": "サービス設定",
                 "label": "サービス"
-            },
-            "history": {
-                "label": "履歴",
-                "title": "履歴"
             }
         },
         "languages": {
@@ -96,7 +85,6 @@
             "zh_cn": "簡体字中国語"
         },
         "common": {
-            "plugin": "プラグイン",
             "cancel": "キャンセル",
             "ok": "Ok",
             "save": "保存"
@@ -140,20 +128,6 @@
                 },
                 "tencent_img_ocr": {
                     "title": "テンセント画像翻訳"
-                }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "request_path": "リクエストパス"
-                }
-            },
-            "collection": {
-                "anki": {
-                    "title": "Anki"
-                },
-                "eudic": {
-                    "token": "トークン",
-                    "name": "コレクション名"
                 }
             }
         }

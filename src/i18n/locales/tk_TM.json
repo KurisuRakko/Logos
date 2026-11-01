@@ -30,14 +30,11 @@
                 "title": "Umumy Sazlamalar",
                 "label": "Umumy",
                 "auto_start": "Awto Başlangyç",
-                "check_update": "Täzelenmäni Barlaň",
-                "server_port": "Serwer porty",
                 "app_language": "Dili",
                 "app_theme": "Tema",
                 "app_font": "Şrift",
                 "app_fallback_font": "Yza gaýdýan şrift",
-                "dev_mode": "Developer mody",
-                "server_port_change": "Serwer porty üýtgedildi, üýtgeşmeleriň güýje girmegi üçin programmany täzeden açyň"
+                "dev_mode": "Developer mody"
             }
         },
         "languages": {
@@ -78,7 +75,6 @@
             "cancel": "Ýatyr",
             "save": "Saklaň",
             "write_clipboard": "Ýat paneline ýazyň",
-            "plugin": "Plugin",
             "coming": "Tiz ýakynda…",
             "clear": "Arassala"
         }

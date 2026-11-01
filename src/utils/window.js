@@ -1,0 +1,21 @@
+import { appWindow } from '@tauri-apps/api/window';
+
+// These windows are created once and then only hidden: the backend calls show() + set_focus()
+// on the existing window and emits `window_reactivate` (the translate window also gets `new_text`).
+export const RESIDENT_WINDOWS = ['translate', 'screenshot', 'recognize'];
+
+// Dispatched on `window` right before a resident window hides itself, so components can drop
+// per-activation state (text, results, images) and the next show never flashes stale content.
+export const WINDOW_HIDE_EVENT = 'pot_window_hide';
+
+export const isResidentWindow = () => RESIDENT_WINDOWS.includes(appWindow.label);
+
+// Replacement for appWindow.close(): resident windows hide, other windows still close.
+export async function dismissWindow() {
+    if (isResidentWindow()) {
+        window.dispatchEvent(new Event(WINDOW_HIDE_EVENT));
+        await appWindow.hide();
+    } else {
+        await appWindow.close();
+    }
+}

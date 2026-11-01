@@ -7,19 +7,20 @@ import React from 'react';
 
 import * as builtinServices from '../../../../../../services/translate';
 import { useConfig } from '../../../../../../hooks';
-import { INSTANCE_NAME_CONFIG_KEY, ServiceSourceType, getDisplayInstanceName, getServiceName, getServiceSouceType } from '../../../../../../utils/service_instance';
+import {
+    INSTANCE_NAME_CONFIG_KEY,
+    getDisplayInstanceName,
+    getServiceName,
+} from '../../../../../../utils/service_instance';
 
 export default function ServiceItem(props) {
-    const { serviceInstanceKey, pluginList, deleteServiceInstance, setCurrentConfigKey, onConfigOpen, ...drag } = props;
+    const { serviceInstanceKey, deleteServiceInstance, setCurrentConfigKey, onConfigOpen, ...drag } = props;
     const { t } = useTranslation();
     const [serviceInstanceConfig, setServiceInstanceConfig] = useConfig(serviceInstanceKey, {});
 
-    const serviceSourceType = getServiceSouceType(serviceInstanceKey)
-    const serviceName = getServiceName(serviceInstanceKey)
+    const serviceName = getServiceName(serviceInstanceKey);
 
-    return serviceSourceType === ServiceSourceType.PLUGIN && !(serviceName in pluginList) ? (
-        <></>
-    ) : (
+    return (
         serviceInstanceConfig !== null && (
             <div className='bg-content2 rounded-md px-[10px] py-[20px] flex justify-between'>
                 <div className='flex'>
@@ -31,28 +32,17 @@ export default function ServiceItem(props) {
                     </div>
 
                     <Spacer x={2} />
-                    {serviceSourceType === ServiceSourceType.BUILDIN && (
-                        <>
-                            <img
-                                src={`${builtinServices[serviceName].info.icon}`}
-                                className='h-[24px] w-[24px] my-auto'
-                                draggable={false}
-                            />
-                            <Spacer x={2} />
-                            <h2 className='my-auto'>{getDisplayInstanceName(serviceInstanceConfig[INSTANCE_NAME_CONFIG_KEY], () => t(`services.translate.${serviceName}.title`))}</h2>
-                        </>
-                    )}
-                    {serviceSourceType === ServiceSourceType.PLUGIN && (
-                        <>
-                            <img
-                                src={pluginList[serviceName].icon}
-                                className='h-[24px] w-[24px] my-auto'
-                                draggable={false}
-                            />
-                            <Spacer x={2} />
-                            <h2 className='my-auto'>{getDisplayInstanceName(serviceInstanceConfig[INSTANCE_NAME_CONFIG_KEY], () => pluginList[serviceName].display) +  `[${t('common.plugin')}]`}</h2>
-                        </>
-                    )}
+                    <img
+                        src={`${builtinServices[serviceName].info.icon}`}
+                        className='h-[24px] w-[24px] my-auto'
+                        draggable={false}
+                    />
+                    <Spacer x={2} />
+                    <h2 className='my-auto'>
+                        {getDisplayInstanceName(serviceInstanceConfig[INSTANCE_NAME_CONFIG_KEY], () =>
+                            t(`services.translate.${serviceName}.title`)
+                        )}
+                    </h2>
                 </div>
                 <div className='flex'>
                     <Switch

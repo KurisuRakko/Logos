@@ -1,25 +1,16 @@
 export enum ServiceType {
     TRANSLATE = 'translate',
     RECOGNIZE = 'recognize',
-    TTS = 'tts',
-    COLLECTION = 'collection',
 }
 
-export enum ServiceSourceType {
-    BUILDIN = 'buildin',
-    PLUGIN = 'plugin',
-}
-
-export function getServiceSouceType(serviceInstanceKey: string): ServiceSourceType {
-    if (serviceInstanceKey.startsWith('plugin')) {
-        return ServiceSourceType.PLUGIN;
-    } else {
-        return ServiceSourceType.BUILDIN;
+// Plugin services were removed. Configs inherited from pot-desktop may still list
+// instance keys starting with "plugin", so drop them whenever a service list is read.
+export function filterServiceInstanceList(list: string[] | null, defaultList: string[]): string[] | null {
+    if (list === null) {
+        return null;
     }
-}
-
-export function whetherPluginService(serviceInstanceKey: string): boolean {
-    return getServiceSouceType(serviceInstanceKey) === ServiceSourceType.PLUGIN;
+    const filtered = list.filter((key) => !key.startsWith('plugin'));
+    return filtered.length > 0 ? filtered : defaultList;
 }
 
 // The serviceInstanceKey consists of the service name and it's id, separated by @
@@ -29,7 +20,6 @@ export function createServiceInstanceKey(serviceName: string): string {
     return `${serviceName}@${randomId}`;
 }
 
-// if the serviceInstanceKey is from a plugin, serviceName is it's pluginId
 export function getServiceName(serviceInstanceKey: string): string {
     return serviceInstanceKey.split('@')[0];
 }
@@ -39,12 +29,3 @@ export function getDisplayInstanceName(instanceName: string, serviceNameSupplier
 }
 
 export const INSTANCE_NAME_CONFIG_KEY = 'instanceName';
-
-export function whetherAvailableService(
-    serviceInstanceKey: string,
-    availableServices: Record<ServiceSourceType, Record<string, any>>
-) {
-    const serviceSourceType = getServiceSouceType(serviceInstanceKey);
-    const serviceName = getServiceName(serviceInstanceKey);
-    return availableServices[serviceSourceType]?.[serviceName] !== undefined;
-}

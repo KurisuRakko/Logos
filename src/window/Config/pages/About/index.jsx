@@ -5,7 +5,6 @@ import { open } from '@tauri-apps/api/shell';
 import { BsTencentQq } from 'react-icons/bs';
 import { BsTelegram } from 'react-icons/bs';
 import { BsGithub } from 'react-icons/bs';
-import { invoke } from '@tauri-apps/api';
 import React from 'react';
 
 import { appVersion } from '../../../../utils/env';
@@ -159,16 +158,6 @@ export default function About() {
             </div>
             <div className='content-center px-[40px]'>
                 <div className='flex justify-between'>
-                    <Button
-                        variant='light'
-                        className='my-[5px]'
-                        size='sm'
-                        onPress={() => {
-                            invoke('updater_window');
-                        }}
-                    >
-                        {t('config.about.check_update')}
-                    </Button>
                     <Button
                         variant='light'
                         className='my-[5px]'

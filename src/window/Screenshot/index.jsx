@@ -3,9 +3,11 @@ import { appCacheDir, join } from '@tauri-apps/api/path';
 import { currentMonitor } from '@tauri-apps/api/window';
 import { convertFileSrc } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
-import { emit } from '@tauri-apps/api/event';
+import { emit, listen } from '@tauri-apps/api/event';
 import { warn } from 'tauri-plugin-log-api';
 import { invoke } from '@tauri-apps/api';
+
+import { dismissWindow, WINDOW_HIDE_EVENT } from '../../utils/window';
 
 export default function Screenshot() {
     const [imgurl, setImgurl] = useState('');
@@ -18,17 +20,40 @@ export default function Screenshot() {
 
     const imgRef = useRef();
 
-    useEffect(() => {
+    // 截屏并加载图片，图片加载完成后由 onLoad 显示窗口
+    const capture = () => {
         currentMonitor().then((monitor) => {
             const position = monitor.position;
             invoke('screenshot', { x: position.x, y: position.y }).then(() => {
                 appCacheDir().then((appCacheDirPath) => {
                     join(appCacheDirPath, 'pot_screenshot.png').then((filePath) => {
-                        setImgurl(convertFileSrc(filePath));
+                        // the file path never changes, so bust the webview image cache on every capture
+                        setImgurl(`${convertFileSrc(filePath)}?t=${Date.now()}`);
                     });
                 });
             });
         });
+    };
+
+    useEffect(() => {
+        capture();
+        // the window is kept alive: the backend repositions it (without showing) and emits this event
+        const unlisten = listen('window_reactivate', () => {
+            capture();
+        });
+        // drop the full-screen image before hiding to release its memory
+        const reset = () => {
+            setIsDown(false);
+            setIsMoved(false);
+            setImgurl('');
+        };
+        window.addEventListener(WINDOW_HIDE_EVENT, reset);
+        return () => {
+            unlisten.then((f) => {
+                f();
+            });
+            window.removeEventListener(WINDOW_HIDE_EVENT, reset);
+        };
     }, []);
 
     return (
@@ -36,7 +61,7 @@ export default function Screenshot() {
             <img
                 ref={imgRef}
                 className='fixed top-0 left-0 w-full select-none'
-                src={imgurl}
+                src={imgurl || undefined}
                 draggable={false}
                 onLoad={() => {
                     if (imgurl !== '' && imgRef.current.complete) {
@@ -63,7 +88,7 @@ export default function Screenshot() {
                         setMouseDownX(e.clientX);
                         setMouseDownY(e.clientY);
                     } else {
-                        void appWindow.close();
+                        void dismissWindow();
                     }
                 }}
                 onMouseMove={(e) => {
@@ -87,11 +112,11 @@ export default function Screenshot() {
                     const height = bottom - top;
                     if (width <= 0 || height <= 0) {
                         warn('Screenshot area is too small');
-                        await appWindow.close();
+                        await dismissWindow();
                     } else {
                         await invoke('cut_image', { left, top, width, height });
                         await emit('success');
-                        await appWindow.close();
+                        await dismissWindow();
                     }
                 }}
             />

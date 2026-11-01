@@ -2,7 +2,6 @@
     "translation": {
         "common": {
             "ok": "Ok",
-            "plugin": "Plugin",
             "cancel": "Cancelar",
             "write_clipboard": "Escrever na Área de Transferência",
             "save": "Gravar",
@@ -216,23 +215,6 @@
                 "system": {
                     "title": "OCR do Sistema"
                 }
-            },
-            "collection": {
-                "anki": {
-                    "port": "Porta",
-                    "title": "Anki"
-                },
-                "eudic": {
-                    "token": "Token",
-                    "name": "Nome da Coleção",
-                    "title": "Eudic"
-                }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "title": "Lingva",
-                    "request_path": "Caminho do Pedido"
-                }
             }
         },
         "languages": {
@@ -296,7 +278,6 @@
                     "system": "Sistema",
                     "dark": "Escuro"
                 },
-                "server_port_change": "A porta de escuta foi alterada. Reinicie a aplicação para que as alterações tenham efeito",
                 "font_size": {
                     "20": "Muito Grande (20px)",
                     "18": "Grande (18px)",
@@ -308,9 +289,7 @@
                     "title": "Tamanho da Fonte"
                 },
                 "app_font": "Fonte",
-                "server_port": "Porta de Escuta",
                 "proxy_error": "Por favor preencha o host e a porta",
-                "check_update": "Procurar Atualização",
                 "app_language": "Idioma de Exibição",
                 "transparent": "Efeito de Transparência",
                 "title": "Configurações Gerais",
@@ -338,7 +317,6 @@
                 "yandex": "Yandex",
                 "local": "Local",
                 "disable": "Desativar",
-                "history_disable": "Desativar Histórico",
                 "hide_window": "Ocultar Janela de Tradução",
                 "remember_window_size": "Lembrar do Tamanho da Janela",
                 "delete_newline": "Apagar Nova Linha",
@@ -360,26 +338,6 @@
                 "baidu": "Baidu",
                 "incremental_translate": "Tradução Incremental",
                 "target_language": "Idioma de Destino"
-            },
-            "backup": {
-                "local": "Local",
-                "empty": "Ainda não fez backup",
-                "restore": "Restaurar",
-                "title": "Configurações de Backup",
-                "webdav": "WebDav",
-                "load_success": "Carregar Backup com Sucesso",
-                "list": "Lista de Backup",
-                "backup": "Backup",
-                "password": "Palavra-passe",
-                "webdav_url": "URL do WebDav",
-                "username": "Nome de utilizador",
-                "backup_success": "Backup com Sucesso",
-                "label": "Backup",
-                "type": "Tipo de Serviço",
-                "logout": "Sair",
-                "login_success": "Sucesso de Login",
-                "aliyun": "Aliyun Drive",
-                "aliyun_login_first": "Por favor, leia o código para fazer login primeiro."
             },
             "recognize": {
                 "delete_newline": "Apagar Nova Linha Automaticamente",
@@ -403,16 +361,9 @@
             },
             "service": {
                 "add_service": "Adicionar Serviço",
-                "uninstall_success": "Plug-in desinstalado com sucesso",
                 "least": "Por favor, mantenha pelo menos um",
-                "tts": "TTS",
-                "homepage": "Homepage",
                 "translate": "Traduzir",
                 "recognize": "Reconhecimento",
-                "collection": "Coleção",
-                "view_plugin_list": "Exibir Lista de Plugins",
-                "install_plugin": "Instalar Plug-in",
-                "add_external_service": "Adicionar Extensão",
                 "title": "Configuração do Serviço",
                 "add_builtin_service": "Adicionar Serviço Integrado",
                 "label": "Serviço",
@@ -422,7 +373,6 @@
                 "title": "Sobre a Aplicação",
                 "qq_group": "Grupo QQ",
                 "website": "Website",
-                "check_update": "Procurar Atualização",
                 "telegram": "Telegram",
                 "feedback": "Realimentação",
                 "label": "Sobre",
@@ -434,31 +384,15 @@
                 "discussion": "Discussão no GitHub",
                 "qq_channel": "Canal no QQ",
                 "view_log": "Exibir Registro"
-            },
-            "history": {
-                "label": "Histórico",
-                "title": "Histórico"
             }
         },
         "translate": {
             "delete_newline": "Apagar Quebra de Linha",
-            "add_collection_success": "Adicionar à coleção com sucesso",
             "retry": "Tentar novamente",
             "recognizing": "A reconhecer…",
             "translate_back": "Tradução de volta ao original",
             "translate": "Traduzir",
-            "copy": "Copiar",
-            "speak": "Falar"
-        },
-        "updater": {
-            "installed": "Instalação concluída, reinicie a aplicação para que as alterações entrem em vigor",
-            "downloading": "A descarregar…",
-            "update": "Atualizar",
-            "progress": "Progresso da Descarga",
-            "latest": "## A versão mais recente está instalada",
-            "cancel": "Cancelar",
-            "title": "Procurar Atualização",
-            "installing": "A Instalar…"
+            "copy": "Copiar"
         },
         "recognize": {
             "translate": "Traduzir",

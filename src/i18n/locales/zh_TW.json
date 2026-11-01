@@ -5,7 +5,6 @@
             "cancel": "取消",
             "save": "儲存",
             "write_clipboard": "寫入剪貼簿",
-            "plugin": "外掛程式",
             "coming": "即將推出…",
             "clear": "清除"
         },
@@ -47,9 +46,6 @@
                 "label": "一般設定",
                 "title": "一般設定",
                 "auto_start": "開機自動啟動",
-                "check_update": "啟動時檢查更新",
-                "server_port": "監聽連接埠",
-                "server_port_change": "監聽連接埠已變更，請重新啟動應用程式以使變更生效",
                 "app_language": "顯示語言",
                 "app_theme": "主題",
                 "theme": {
@@ -102,7 +98,6 @@
                 "target": "譯文",
                 "source_target": "原文+譯文",
                 "disable": "停用",
-                "history_disable": "停用歷史記錄",
                 "incremental_translate": "增量翻譯",
                 "dynamic_translate": "動態翻譯",
                 "delete_newline": "自動刪除換行",
@@ -159,42 +154,11 @@
                 "label": "服務設定",
                 "title": "服務設定",
                 "translate": "翻譯",
-                "tts": "語音合成",
                 "recognize": "文字辨識",
-                "collection": "收藏",
                 "least": "請至少保留一個",
                 "add_builtin_service": "新增內建服務",
-                "add_external_service": "新增擴充套件",
                 "add_service": "新增服務",
-                "test_failed": "測試失敗",
-                "install_plugin": "安裝外掛程式",
-                "uninstall_success": "外掛程式移除成功",
-                "homepage": "外掛程式首頁",
-                "view_plugin_list": "檢視外掛程式列表"
-            },
-            "history": {
-                "label": "歷史記錄",
-                "title": "歷史記錄"
-            },
-            "backup": {
-                "label": "備份設定",
-                "title": "備份設定",
-                "type": "服務類型",
-                "webdav": "WebDav",
-                "local": "本地",
-                "webdav_url": "WebDav 網址",
-                "username": "使用者名稱",
-                "password": "密碼",
-                "backup": "備份",
-                "restore": "還原",
-                "list": "備份列表",
-                "load_success": "載入備份成功",
-                "backup_success": "備份成功",
-                "empty": "您尚未進行備份",
-                "aliyun_login_first": "請先掃描 QR Code 登入。",
-                "login_success": "登入成功",
-                "aliyun": "阿里雲網盤",
-                "logout": "登出"
+                "test_failed": "測試失敗"
             },
             "about": {
                 "label": "關於",
@@ -205,7 +169,6 @@
                 "issue": "問題回報",
                 "email": "電子郵件",
                 "community": "社群交流",
-                "check_update": "檢查更新",
                 "view_log": "檢視記錄檔",
                 "view_config": "檢視設定",
                 "qq_channel": "QQ 頻道",
@@ -213,16 +176,6 @@
                 "telegram": "Telegram",
                 "discussion": "Github 討論區"
             }
-        },
-        "updater": {
-            "title": "檢查更新",
-            "latest": "## 已安裝最新版本",
-            "progress": "下載進度",
-            "update": "更新",
-            "downloading": "下載中…",
-            "installing": "安裝中…",
-            "cancel": "取消",
-            "installed": "安裝完成，請重新啟動應用程式以使變更生效"
         },
         "services": {
             "help": "設定指南",
@@ -428,30 +381,11 @@
                 "qrcode": {
                     "title": "QR Code"
                 }
-            },
-            "tts": {
-                "lingva_tts": {
-                    "title": "Lingva",
-                    "request_path": "請求路徑"
-                }
-            },
-            "collection": {
-                "anki": {
-                    "title": "Anki",
-                    "port": "連接埠"
-                },
-                "eudic": {
-                    "title": "歐路詞典",
-                    "name": "收藏名稱",
-                    "token": "Token"
-                }
             }
         },
         "translate": {
             "translate": "翻譯",
-            "add_collection_success": "成功加入收藏",
             "recognizing": "辨識中…",
-            "speak": "朗讀",
             "copy": "複製",
             "retry": "重試",
             "delete_newline": "刪除換行",

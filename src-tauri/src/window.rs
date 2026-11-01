@@ -1,11 +1,12 @@
-use std::fs;
-
 use crate::config::get;
 use crate::config::set;
 use crate::StringWrapper;
 use crate::APP;
+#[cfg(target_os = "macos")]
 use dirs::cache_dir;
 use log::{info, warn};
+#[cfg(target_os = "macos")]
+use std::fs;
 use tauri::Manager;
 use tauri::Monitor;
 use tauri::Window;
@@ -74,8 +75,9 @@ fn build_window(label: &str, title: &str) -> (Window, bool) {
     let app_handle = APP.get().unwrap();
     match app_handle.get_window(label) {
         Some(v) => {
+            // Windows are kept alive (the frontend hides instead of closing).
+            // Callers finish sizing/positioning first and then call `reactivate`
             info!("Window existence: {}", label);
-            v.set_focus().unwrap();
             (v, true)
         }
         None => {
@@ -113,13 +115,25 @@ fn build_window(label: &str, title: &str) -> (Window, bool) {
     }
 }
 
+// Bring a reused window back and tell the page it has been reactivated
+fn reactivate(window: &Window, show: bool) {
+    if show {
+        window.show().unwrap_or_default();
+        window.set_focus().unwrap_or_default();
+    }
+    window.emit("window_reactivate", ()).unwrap_or_default();
+}
+
 pub fn config_window() {
-    let (window, _exists) = build_window("config", "Config");
+    let (window, exists) = build_window("config", "Config");
     window
         .set_min_size(Some(tauri::LogicalSize::new(800, 400)))
         .unwrap();
     window.set_size(tauri::LogicalSize::new(800, 600)).unwrap();
     window.center().unwrap();
+    if exists {
+        reactivate(&window, true);
+    }
 }
 
 fn translate_window() -> Window {
@@ -133,9 +147,6 @@ fn translate_window() -> Window {
         }
     };
     let (window, exists) = build_window("translate", "Translate");
-    if exists {
-        return window;
-    }
     window.set_skip_taskbar(true).unwrap();
     // Get Translate Window Size
     let width = match get("translate_window_width") {
@@ -220,6 +231,9 @@ fn translate_window() -> Window {
         }
     }
 
+    if exists {
+        reactivate(&window, true);
+    }
     window
 }
 
@@ -257,15 +271,6 @@ pub fn input_translate() {
     }
 
     window.emit("new_text", "[INPUT_TRANSLATE]").unwrap();
-}
-
-pub fn text_translate(text: String) {
-    let app_handle = APP.get().unwrap();
-    // Clear State
-    let state: tauri::State<StringWrapper> = app_handle.state();
-    state.0.lock().unwrap().replace_range(.., &text);
-    let window = translate_window();
-    window.emit("new_text", text).unwrap();
 }
 
 pub fn image_translate() {
@@ -309,13 +314,29 @@ pub fn recognize_window() {
         ))
         .unwrap();
     window.center().unwrap();
+    if exists {
+        reactivate(&window, true);
+    }
     window.emit("new_image", "").unwrap();
 }
 
 #[cfg(not(target_os = "macos"))]
 fn screenshot_window() -> Window {
-    let (window, _exists) = build_window("screenshot", "Screenshot");
+    let (window, exists) = build_window("screenshot", "Screenshot");
 
+    if exists {
+        // Move the reused window to the monitor under the mouse before going fullscreen again
+        use mouse_position::mouse_position::Mouse;
+        let (x, y) = match Mouse::get_mouse_position() {
+            Mouse::Position { x, y } => (x, y),
+            Mouse::Error => (0, 0),
+        };
+        let position = *get_current_monitor(x, y).position();
+        window.set_fullscreen(false).unwrap_or_default();
+        window
+            .set_position(tauri::PhysicalPosition::new(position.x, position.y))
+            .unwrap_or_default();
+    }
     window.set_skip_taskbar(true).unwrap();
     #[cfg(target_os = "macos")]
     {
@@ -329,7 +350,40 @@ fn screenshot_window() -> Window {
     window.set_fullscreen(true).unwrap();
 
     window.set_always_on_top(true).unwrap();
+    if exists {
+        // Not shown here: the page captures the screen first and shows itself once the
+        // new image is loaded, otherwise the capture would contain this window
+        reactivate(&window, false);
+    }
     window
+}
+
+// Only one pending "success" listener on the screenshot window; a cancelled
+// screenshot (window hidden, not closed) must not leave its listener behind
+#[cfg(not(target_os = "macos"))]
+static SCREENSHOT_LISTENER: std::sync::Mutex<Option<tauri::EventHandler>> =
+    std::sync::Mutex::new(None);
+
+#[cfg(not(target_os = "macos"))]
+fn on_screenshot_success<F>(handler: F)
+where
+    F: Fn() + Send + 'static,
+{
+    let window = screenshot_window();
+    let mut pending = SCREENSHOT_LISTENER.lock().unwrap();
+    if let Some(old) = pending.take() {
+        window.unlisten(old);
+    }
+    let window_ = window.clone();
+    *pending = Some(window.listen("success", move |event| {
+        window_.unlisten(event.id());
+        let mut pending = SCREENSHOT_LISTENER.lock().unwrap();
+        if *pending == Some(event.id()) {
+            *pending = None;
+        }
+        drop(pending);
+        handler();
+    }));
 }
 
 pub fn ocr_recognize() {
@@ -357,12 +411,7 @@ pub fn ocr_recognize() {
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let window = screenshot_window();
-        let window_ = window.clone();
-        window.listen("success", move |event| {
-            recognize_window();
-            window_.unlisten(event.id())
-        });
+        on_screenshot_success(recognize_window);
     }
 }
 pub fn ocr_translate() {
@@ -391,21 +440,6 @@ pub fn ocr_translate() {
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let window = screenshot_window();
-        let window_ = window.clone();
-        window.listen("success", move |event| {
-            image_translate();
-            window_.unlisten(event.id())
-        });
+        on_screenshot_success(image_translate);
     }
-}
-
-#[tauri::command(async)]
-pub fn updater_window() {
-    let (window, _exists) = build_window("updater", "Updater");
-    window
-        .set_min_size(Some(tauri::LogicalSize::new(600, 400)))
-        .unwrap();
-    window.set_size(tauri::LogicalSize::new(600, 400)).unwrap();
-    window.center().unwrap();
 }

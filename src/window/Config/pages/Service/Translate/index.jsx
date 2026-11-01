@@ -5,32 +5,21 @@ import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 
 import { useToastStyle } from '../../../../../hooks';
-import SelectPluginModal from '../SelectPluginModal';
 import { osType } from '../../../../../utils/env';
-import { useConfig, deleteKey } from '../../../../../hooks';
+import { useServiceInstanceList, deleteKey } from '../../../../../hooks';
 import ServiceItem from './ServiceItem';
 import SelectModal from './SelectModal';
 import ConfigModal from './ConfigModal';
 
-export default function Translate(props) {
-    const { pluginList } = props;
-    const {
-        isOpen: isSelectPluginOpen,
-        onOpen: onSelectPluginOpen,
-        onOpenChange: onSelectPluginOpenChange,
-    } = useDisclosure();
+export default function Translate() {
     const { isOpen: isSelectOpen, onOpen: onSelectOpen, onOpenChange: onSelectOpenChange } = useDisclosure();
     const { isOpen: isConfigOpen, onOpen: onConfigOpen, onOpenChange: onConfigOpenChange } = useDisclosure();
     const [currentConfigKey, setCurrentConfigKey] = useState('deepl');
     // now it's service instance list
-    const [translateServiceInstanceList, setTranslateServiceInstanceList] = useConfig('translate_service_list', [
-        'deepl',
-        'bing',
-        'lingva',
-        'yandex',
-        'google',
-        'ecdict',
-    ]);
+    const [translateServiceInstanceList, setTranslateServiceInstanceList] = useServiceInstanceList(
+        'translate_service_list',
+        ['deepl', 'bing', 'lingva', 'yandex', 'google', 'ecdict']
+    );
 
     const { t } = useTranslation();
     const toastStyle = useToastStyle();
@@ -102,7 +91,6 @@ export default function Translate(props) {
                                                                 {...provided.dragHandleProps}
                                                                 key={x}
                                                                 serviceInstanceKey={x}
-                                                                pluginList={pluginList}
                                                                 deleteServiceInstance={deleteServiceInstance}
                                                                 setCurrentConfigKey={setCurrentConfigKey}
                                                                 onConfigOpen={onConfigOpen}
@@ -126,24 +114,8 @@ export default function Translate(props) {
                     >
                         {t('config.service.add_builtin_service')}
                     </Button>
-                    <Spacer x={2} />
-                    <Button
-                        fullWidth
-                        onPress={onSelectPluginOpen}
-                    >
-                        {t('config.service.add_external_service')}
-                    </Button>
                 </div>
             </Card>
-            <SelectPluginModal
-                isOpen={isSelectPluginOpen}
-                onOpenChange={onSelectPluginOpenChange}
-                setCurrentConfigKey={setCurrentConfigKey}
-                onConfigOpen={onConfigOpen}
-                pluginType='translate'
-                pluginList={pluginList}
-                deleteService={deleteServiceInstance}
-            />
             <SelectModal
                 isOpen={isSelectOpen}
                 onOpenChange={onSelectOpenChange}
@@ -152,7 +124,6 @@ export default function Translate(props) {
             />
             <ConfigModal
                 serviceInstanceKey={currentConfigKey}
-                pluginList={pluginList}
                 isOpen={isConfigOpen}
                 onOpenChange={onConfigOpenChange}
                 updateServiceInstanceList={updateServiceInstanceList}

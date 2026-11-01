@@ -2,26 +2,22 @@ import { appWindow } from '@tauri-apps/api/window';
 import { BrowserRouter } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { warn } from 'tauri-plugin-log-api';
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
 import { invoke } from '@tauri-apps/api/tauri';
-import Screenshot from './window/Screenshot';
-import Translate from './window/Translate';
-import Recognize from './window/Recognize';
-import Updater from './window/Updater';
+import { dismissWindow } from './utils/window';
 import { store } from './utils/store';
-import Config from './window/Config';
 import { useConfig } from './hooks';
 import './style.css';
 import './i18n';
 
+// 每个窗口只加载自己的代码：翻译窗不会打包加载 Config 等页面
 const windowMap = {
-    translate: <Translate />,
-    screenshot: <Screenshot />,
-    recognize: <Recognize />,
-    config: <Config />,
-    updater: <Updater />,
+    translate: lazy(() => import('./window/Translate')),
+    screenshot: lazy(() => import('./window/Screenshot')),
+    recognize: lazy(() => import('./window/Recognize')),
+    config: lazy(() => import('./window/Config')),
 };
 
 export default function App() {
@@ -39,36 +35,25 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        if (devMode !== null && devMode) {
-            document.addEventListener('keydown', async (e) => {
-                let allowKeys = ['c', 'v', 'x', 'a', 'z', 'y'];
-                if (e.ctrlKey && !allowKeys.includes(e.key.toLowerCase())) {
-                    e.preventDefault();
-                }
-                if (e.key === 'F12') {
-                    await invoke('open_devtools');
-                }
-                if (e.key.startsWith('F') && e.key.length > 1) {
-                    e.preventDefault();
-                }
-                if (e.key === 'Escape') {
-                    await appWindow.close();
-                }
-            });
-        } else {
-            document.addEventListener('keydown', async (e) => {
-                let allowKeys = ['c', 'v', 'x', 'a', 'z', 'y'];
-                if (e.ctrlKey && !allowKeys.includes(e.key.toLowerCase())) {
-                    e.preventDefault();
-                }
-                if (e.key.startsWith('F') && e.key.length > 1) {
-                    e.preventDefault();
-                }
-                if (e.key === 'Escape') {
-                    await appWindow.close();
-                }
-            });
-        }
+        const onKeyDown = async (e) => {
+            let allowKeys = ['c', 'v', 'x', 'a', 'z', 'y'];
+            if (e.ctrlKey && !allowKeys.includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+            if (devMode && e.key === 'F12') {
+                await invoke('open_devtools');
+            }
+            if (e.key.startsWith('F') && e.key.length > 1) {
+                e.preventDefault();
+            }
+            if (e.key === 'Escape') {
+                await dismissWindow();
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('keydown', onKeyDown);
+        };
     }, [devMode]);
 
     useEffect(() => {
@@ -113,5 +98,11 @@ export default function App() {
         }
     }, [appFont, appFallbackFont, appFontSize]);
 
-    return <BrowserRouter>{windowMap[appWindow.label]}</BrowserRouter>;
+    const WindowComponent = windowMap[appWindow.label];
+
+    return (
+        <BrowserRouter>
+            <Suspense fallback={null}>{WindowComponent && <WindowComponent />}</Suspense>
+        </BrowserRouter>
+    );
 }

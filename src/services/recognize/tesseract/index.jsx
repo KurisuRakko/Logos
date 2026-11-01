@@ -1,7 +1,8 @@
-import Tesseract from 'tesseract.js';
 import { Language } from './info';
 
 export async function recognize(base64, language) {
+    // tesseract.js is large and rarely used, so only load it when this service actually runs
+    const { default: Tesseract } = await import('tesseract.js');
     const {
         data: { text },
     } = await Tesseract.recognize('data:image/png;base64,' + base64, language, {

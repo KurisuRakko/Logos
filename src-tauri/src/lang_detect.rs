@@ -1,6 +1,9 @@
-pub fn init_lang_detect() {
-    // https://crates.io/crates/lingua
-    use lingua::{Language, LanguageDetectorBuilder};
+// https://crates.io/crates/lingua
+use lingua::{Language, LanguageDetector, LanguageDetectorBuilder};
+use once_cell::sync::Lazy;
+
+// Built on first use only; building the detector is expensive
+static DETECTOR: Lazy<LanguageDetector> = Lazy::new(|| {
     let languages = vec![
         Language::Chinese,
         Language::Japanese,
@@ -25,37 +28,12 @@ pub fn init_lang_detect() {
         Language::Persian,
         Language::Ukrainian,
     ];
-    let detector = LanguageDetectorBuilder::from_languages(&languages).build();
-    let _ = detector.detect_language_of("Hello Language");
-}
+    LanguageDetectorBuilder::from_languages(&languages).build()
+});
+
 #[tauri::command]
 pub fn lang_detect(text: &str) -> Result<&str, ()> {
-    use lingua::{Language, LanguageDetectorBuilder};
-    let languages = vec![
-        Language::Chinese,
-        Language::Japanese,
-        Language::English,
-        Language::Korean,
-        Language::French,
-        Language::Spanish,
-        Language::German,
-        Language::Russian,
-        Language::Italian,
-        Language::Portuguese,
-        Language::Turkish,
-        Language::Arabic,
-        Language::Vietnamese,
-        Language::Thai,
-        Language::Indonesian,
-        Language::Malay,
-        Language::Hindi,
-        Language::Mongolian,
-        Language::Bokmal,
-        Language::Nynorsk,
-        Language::Persian,
-    ];
-    let detector = LanguageDetectorBuilder::from_languages(&languages).build();
-    if let Some(lang) = detector.detect_language_of(text) {
+    if let Some(lang) = DETECTOR.detect_language_of(text) {
         match lang {
             Language::Chinese => Ok("zh_cn"),
             Language::Japanese => Ok("ja"),

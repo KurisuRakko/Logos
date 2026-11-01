@@ -5,28 +5,21 @@ import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 
 import { useToastStyle } from '../../../../../hooks';
-import SelectPluginModal from '../SelectPluginModal';
 import { osType } from '../../../../../utils/env';
-import { useConfig, deleteKey } from '../../../../../hooks';
+import { useServiceInstanceList, deleteKey } from '../../../../../hooks';
 import ServiceItem from './ServiceItem';
 import SelectModal from './SelectModal';
 import ConfigModal from './ConfigModal';
 
-export default function Recognize(props) {
-    const { pluginList } = props;
-    const {
-        isOpen: isSelectPluginOpen,
-        onOpen: onSelectPluginOpen,
-        onOpenChange: onSelectPluginOpenChange,
-    } = useDisclosure();
+export default function Recognize() {
     const { isOpen: isSelectOpen, onOpen: onSelectOpen, onOpenChange: onSelectOpenChange } = useDisclosure();
     const { isOpen: isConfigOpen, onOpen: onConfigOpen, onOpenChange: onConfigOpenChange } = useDisclosure();
     const [currentConfigKey, setCurrentConfigKey] = useState('system');
     // now it's service instance list
-    const [recognizeServiceInstanceList, setRecognizeServiceInstanceList] = useConfig('recognize_service_list', [
-        'system',
-        'tesseract',
-    ]);
+    const [recognizeServiceInstanceList, setRecognizeServiceInstanceList] = useServiceInstanceList(
+        'recognize_service_list',
+        ['system', 'tesseract']
+    );
 
     const { t } = useTranslation();
     const toastStyle = useToastStyle();
@@ -98,7 +91,6 @@ export default function Recognize(props) {
                                                                 {...provided.dragHandleProps}
                                                                 serviceInstanceKey={x}
                                                                 key={x}
-                                                                pluginList={pluginList}
                                                                 deleteServiceInstance={deleteServiceInstance}
                                                                 setCurrentConfigKey={setCurrentConfigKey}
                                                                 onConfigOpen={onConfigOpen}
@@ -122,24 +114,8 @@ export default function Recognize(props) {
                     >
                         {t('config.service.add_builtin_service')}
                     </Button>
-                    <Spacer x={2} />
-                    <Button
-                        fullWidth
-                        onPress={onSelectPluginOpen}
-                    >
-                        {t('config.service.add_external_service')}
-                    </Button>
                 </div>
             </Card>
-            <SelectPluginModal
-                isOpen={isSelectPluginOpen}
-                onOpenChange={onSelectPluginOpenChange}
-                setCurrentConfigKey={setCurrentConfigKey}
-                onConfigOpen={onConfigOpen}
-                pluginType='recognize'
-                pluginList={pluginList}
-                deleteService={deleteServiceInstance}
-            />
             <SelectModal
                 isOpen={isSelectOpen}
                 onOpenChange={onSelectOpenChange}
@@ -149,7 +125,6 @@ export default function Recognize(props) {
             <ConfigModal
                 serviceInstanceKey={currentConfigKey}
                 isOpen={isConfigOpen}
-                pluginList={pluginList}
                 onOpenChange={onConfigOpenChange}
                 updateServiceInstanceList={updateServiceInstanceList}
             />

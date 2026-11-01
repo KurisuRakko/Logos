@@ -3,29 +3,19 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Space
 import { useTranslation } from 'react-i18next';
 import React from 'react';
 
-import {
-    ServiceSourceType,
-    getServiceName,
-    getServiceSouceType,
-    whetherPluginService,
-} from '../../../../../../utils/service_instance';
+import { getServiceName } from '../../../../../../utils/service_instance';
 import * as builtinServices from '../../../../../../services/recognize';
 import { osType } from '../../../../../../utils/env';
-import { PluginConfig } from '../../PluginConfig';
 
 export default function ConfigModal(props) {
-    const { serviceInstanceKey, pluginList, isOpen, onOpenChange, updateServiceInstanceList } = props;
+    const { serviceInstanceKey, isOpen, onOpenChange, updateServiceInstanceList } = props;
 
-    const serviceSourceType = getServiceSouceType(serviceInstanceKey);
-    const pluginServiceFlag = whetherPluginService(serviceInstanceKey);
     const serviceName = getServiceName(serviceInstanceKey);
 
     const { t } = useTranslation();
-    const ConfigComponent = pluginServiceFlag ? PluginConfig : builtinServices[serviceName].Config;
+    const ConfigComponent = builtinServices[serviceName].Config;
 
-    return pluginServiceFlag && !(serviceName in pluginList) ? (
-        <></>
-    ) : (
+    return (
         <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
@@ -35,40 +25,22 @@ export default function ConfigModal(props) {
                 {(onClose) => (
                     <>
                         <ModalHeader>
-                            {serviceSourceType === ServiceSourceType.BUILDIN && (
-                                <>
-                                    <img
-                                        src={
-                                            serviceName === 'system'
-                                                ? `logo/${osType}.svg`
-                                                : builtinServices[serviceName].info.icon
-                                        }
-                                        className='h-[24px] w-[24px] my-auto'
-                                        draggable={false}
-                                    />
-                                    <Spacer x={2} />
-                                    {t(`services.recognize.${serviceName}.title`)}
-                                </>
-                            )}
-                            {pluginServiceFlag && (
-                                <>
-                                    <img
-                                        src={pluginList[serviceName].icon}
-                                        className='h-[24px] w-[24px] my-auto'
-                                        draggable={false}
-                                    />
-
-                                    <Spacer x={2} />
-                                    {`${pluginList[serviceName].display} [${t('common.plugin')}]`}
-                                </>
-                            )}
+                            <img
+                                src={
+                                    serviceName === 'system'
+                                        ? `logo/${osType}.svg`
+                                        : builtinServices[serviceName].info.icon
+                                }
+                                className='h-[24px] w-[24px] my-auto'
+                                draggable={false}
+                            />
+                            <Spacer x={2} />
+                            {t(`services.recognize.${serviceName}.title`)}
                         </ModalHeader>
                         <ModalBody>
                             <ConfigComponent
                                 name={serviceName}
                                 instanceKey={serviceInstanceKey}
-                                pluginType='recognize'
-                                pluginList={pluginList}
                                 updateServiceList={updateServiceInstanceList}
                                 onClose={onClose}
                             />

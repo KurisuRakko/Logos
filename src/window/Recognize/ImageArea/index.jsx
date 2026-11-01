@@ -8,14 +8,16 @@ import { invoke } from '@tauri-apps/api';
 import { atom, useAtom } from 'jotai';
 
 import { useConfig } from '../../../hooks';
+import { WINDOW_HIDE_EVENT } from '../../../utils/window';
 
 export const base64Atom = atom('');
-let unlisten = null;
 
 export default function ImageArea() {
     const [hideWindow] = useConfig('recognize_hide_window', false);
     const [base64, setBase64] = useAtom(base64Atom);
     const imgRef = useRef();
+    const loadImgRef = useRef();
+    const initializedRef = useRef(false);
     const { t } = useTranslation();
     const load_img = () => {
         invoke('get_base64').then((v) => {
@@ -28,18 +30,35 @@ export default function ImageArea() {
             }
         });
     };
+    // the window stays alive between activations, so listeners must always call the latest closure
+    loadImgRef.current = load_img;
 
     useEffect(() => {
-        if (hideWindow !== null) {
-            load_img();
-            if (unlisten) {
+        // `window_reactivate` is emitted when the backend reuses the hidden window
+        const unlistenList = ['new_image', 'window_reactivate'].map((event) =>
+            listen(event, () => {
+                loadImgRef.current();
+            })
+        );
+        // drop the image (and with it the recognized text) before the window hides
+        const reset = () => {
+            setBase64('');
+        };
+        window.addEventListener(WINDOW_HIDE_EVENT, reset);
+        return () => {
+            unlistenList.forEach((unlisten) => {
                 unlisten.then((f) => {
                     f();
                 });
-            }
-            unlisten = listen('new_image', (_) => {
-                load_img();
             });
+            window.removeEventListener(WINDOW_HIDE_EVENT, reset);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!initializedRef.current && hideWindow !== null) {
+            initializedRef.current = true;
+            load_img();
         }
     }, [hideWindow]);
 
