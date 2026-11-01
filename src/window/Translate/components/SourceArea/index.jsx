@@ -29,7 +29,7 @@ export default function SourceArea(props) {
     const [dynamicTranslate] = useConfig('dynamic_translate', false);
     const [deleteNewline] = useConfig('translate_delete_newline', false);
     const [recognizeLanguage] = useConfig('recognize_language', 'auto');
-    const [recognizeServiceList] = useServiceInstanceList('recognize_service_list', ['system', 'tesseract']);
+    const [recognizeServiceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [hideWindow] = useConfig('translate_hide_window', false);
     const [hideSource] = useConfig('hide_source', false);
     const [windowType, setWindowType] = useState('[SELECTION_TRANSLATE]');

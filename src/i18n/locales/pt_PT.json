@@ -204,9 +204,6 @@
                 "qrcode": {
                     "title": "Código QR"
                 },
-                "tesseract": {
-                    "title": "Tesseract.js"
-                },
                 "tencent_img_ocr": {
                     "secret_id": "ID Secreto",
                     "title": "Tradução de Imagem da Tencent",

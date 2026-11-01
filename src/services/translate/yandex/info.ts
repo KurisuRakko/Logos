@@ -1,6 +1,6 @@
 export const info = {
     name: 'yandex',
-    icon: 'logo/yandex.svg',
+    icon: 'logo/yandex.png',
 };
 // https://yandex.com/dev/translate/doc/en/concepts/api-overview
 export enum Language {

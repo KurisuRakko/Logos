@@ -61,7 +61,7 @@ const eventKeyOf = (key) => key.replaceAll('.', '_').replaceAll('@', ':');
 export default function Recognize() {
     const [closeOnBlur] = useConfig('recognize_close_on_blur', false);
     const [pined, setPined] = useState(false);
-    const [serviceInstanceList] = useServiceInstanceList('recognize_service_list', ['system', 'tesseract']);
+    const [serviceInstanceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(null);
 
     const loadServiceInstanceConfigMap = async () => {

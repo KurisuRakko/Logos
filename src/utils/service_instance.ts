@@ -4,12 +4,17 @@ export enum ServiceType {
 }
 
 // Plugin services were removed. Configs inherited from pot-desktop may still list
-// instance keys starting with "plugin", so drop them whenever a service list is read.
+// instance keys starting with "plugin" or services dropped from pot-lite, so drop them
+// whenever a service list is read.
+const REMOVED_SERVICES = ['tesseract'];
+
 export function filterServiceInstanceList(list: string[] | null, defaultList: string[]): string[] | null {
     if (list === null) {
         return null;
     }
-    const filtered = list.filter((key) => !key.startsWith('plugin'));
+    const filtered = list.filter(
+        (key) => !key.startsWith('plugin') && !REMOVED_SERVICES.includes(key.split('@')[0])
+    );
     return filtered.length > 0 ? filtered : defaultList;
 }
 

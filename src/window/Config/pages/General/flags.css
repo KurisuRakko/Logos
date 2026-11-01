@@ -1,0 +1,95 @@
+/* Subset of flag-icons (4x3 only): base .fi rules copied from flag-icons/css/flag-icons.css,
+   plus one rule per flag listed in LanguageFlag (src/utils/language.ts). */
+.fi {
+    background-size: contain;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    position: relative;
+    display: inline-block;
+    width: 1.333333em;
+    line-height: 1em;
+}
+.fi:before {
+    content: ' ';
+}
+.fi-ae {
+    background-image: url(flag-icons/flags/4x3/ae.svg);
+}
+.fi-br {
+    background-image: url(flag-icons/flags/4x3/br.svg);
+}
+.fi-cn {
+    background-image: url(flag-icons/flags/4x3/cn.svg);
+}
+.fi-de {
+    background-image: url(flag-icons/flags/4x3/de.svg);
+}
+.fi-es {
+    background-image: url(flag-icons/flags/4x3/es.svg);
+}
+.fi-fr {
+    background-image: url(flag-icons/flags/4x3/fr.svg);
+}
+.fi-gb {
+    background-image: url(flag-icons/flags/4x3/gb.svg);
+}
+.fi-id {
+    background-image: url(flag-icons/flags/4x3/id.svg);
+}
+.fi-il {
+    background-image: url(flag-icons/flags/4x3/il.svg);
+}
+.fi-in {
+    background-image: url(flag-icons/flags/4x3/in.svg);
+}
+.fi-ir {
+    background-image: url(flag-icons/flags/4x3/ir.svg);
+}
+.fi-it {
+    background-image: url(flag-icons/flags/4x3/it.svg);
+}
+.fi-jp {
+    background-image: url(flag-icons/flags/4x3/jp.svg);
+}
+.fi-kh {
+    background-image: url(flag-icons/flags/4x3/kh.svg);
+}
+.fi-kr {
+    background-image: url(flag-icons/flags/4x3/kr.svg);
+}
+.fi-mn {
+    background-image: url(flag-icons/flags/4x3/mn.svg);
+}
+.fi-ms {
+    background-image: url(flag-icons/flags/4x3/ms.svg);
+}
+.fi-nl {
+    background-image: url(flag-icons/flags/4x3/nl.svg);
+}
+.fi-no {
+    background-image: url(flag-icons/flags/4x3/no.svg);
+}
+.fi-pl {
+    background-image: url(flag-icons/flags/4x3/pl.svg);
+}
+.fi-pt {
+    background-image: url(flag-icons/flags/4x3/pt.svg);
+}
+.fi-ru {
+    background-image: url(flag-icons/flags/4x3/ru.svg);
+}
+.fi-se {
+    background-image: url(flag-icons/flags/4x3/se.svg);
+}
+.fi-th {
+    background-image: url(flag-icons/flags/4x3/th.svg);
+}
+.fi-tr {
+    background-image: url(flag-icons/flags/4x3/tr.svg);
+}
+.fi-ua {
+    background-image: url(flag-icons/flags/4x3/ua.svg);
+}
+.fi-vn {
+    background-image: url(flag-icons/flags/4x3/vn.svg);
+}

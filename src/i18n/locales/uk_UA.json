@@ -213,9 +213,6 @@
                 "system": {
                     "title": "Системний OCR"
                 },
-                "tesseract": {
-                    "title": "Tesseract.js"
-                },
                 "tencent_accurate_ocr": {
                     "title": "Tencent OCR (Точний)",
                     "secret_id": "Secret ID",

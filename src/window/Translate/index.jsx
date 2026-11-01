@@ -83,7 +83,7 @@ export default function Translate() {
         'translate_service_list',
         ['deepl', 'bing', 'lingva', 'yandex', 'google', 'ecdict']
     );
-    const [recognizeServiceInstanceList] = useServiceInstanceList('recognize_service_list', ['system', 'tesseract']);
+    const [recognizeServiceInstanceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [hideLanguage] = useConfig('hide_language', false);
     const [pined, setPined] = useState(false);
     const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(null);

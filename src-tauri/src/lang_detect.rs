@@ -1,64 +1,84 @@
-// https://crates.io/crates/lingua
-use lingua::{Language, LanguageDetector, LanguageDetectorBuilder};
-use once_cell::sync::Lazy;
-
-// Built on first use only; building the detector is expensive
-static DETECTOR: Lazy<LanguageDetector> = Lazy::new(|| {
-    let languages = vec![
-        Language::Chinese,
-        Language::Japanese,
-        Language::English,
-        Language::Korean,
-        Language::French,
-        Language::Spanish,
-        Language::German,
-        Language::Russian,
-        Language::Italian,
-        Language::Portuguese,
-        Language::Turkish,
-        Language::Arabic,
-        Language::Vietnamese,
-        Language::Thai,
-        Language::Indonesian,
-        Language::Malay,
-        Language::Hindi,
-        Language::Mongolian,
-        Language::Bokmal,
-        Language::Nynorsk,
-        Language::Persian,
-        Language::Ukrainian,
-    ];
-    LanguageDetectorBuilder::from_languages(&languages).build()
-});
+// https://crates.io/crates/whatlang
+// Pure Rust trigram detector with no bundled models, replacing lingua to keep the binary small.
+use whatlang::Lang;
 
 #[tauri::command]
 pub fn lang_detect(text: &str) -> Result<&str, ()> {
-    if let Some(lang) = DETECTOR.detect_language_of(text) {
-        match lang {
-            Language::Chinese => Ok("zh_cn"),
-            Language::Japanese => Ok("ja"),
-            Language::English => Ok("en"),
-            Language::Korean => Ok("ko"),
-            Language::French => Ok("fr"),
-            Language::Spanish => Ok("es"),
-            Language::German => Ok("de"),
-            Language::Russian => Ok("ru"),
-            Language::Italian => Ok("it"),
-            Language::Portuguese => Ok("pt_pt"),
-            Language::Turkish => Ok("tr"),
-            Language::Arabic => Ok("ar"),
-            Language::Vietnamese => Ok("vi"),
-            Language::Thai => Ok("th"),
-            Language::Indonesian => Ok("id"),
-            Language::Malay => Ok("ms"),
-            Language::Hindi => Ok("hi"),
-            Language::Mongolian => Ok("mn_cy"),
-            Language::Bokmal => Ok("nb_no"),
-            Language::Nynorsk => Ok("nn_no"),
-            Language::Persian => Ok("fa"),
-            Language::Ukrainian => Ok("uk"),
+    Ok(detect(text))
+}
+
+/// Returns the pot language code for `text`, falling back to "en" when unsure.
+pub fn detect(text: &str) -> &'static str {
+    if let Some(code) = detect_cjk(text) {
+        return code;
+    }
+    match whatlang::detect_lang(text) {
+        Some(lang) => map_lang(lang).unwrap_or("en"),
+        None => "en",
+    }
+}
+
+// Decide CJK by script first: whatlang is weak on short mixed Han/kana text.
+// Any kana means Japanese, Hangul means Korean, mostly-Han means Chinese.
+fn detect_cjk(text: &str) -> Option<&'static str> {
+    let (mut han, mut kana, mut hangul, mut letters) = (0usize, 0usize, 0usize, 0usize);
+    for c in text.chars() {
+        match c as u32 {
+            0x3040..=0x30FF | 0x31F0..=0x31FF | 0xFF66..=0xFF9F => kana += 1,
+            0x1100..=0x11FF | 0x3130..=0x318F | 0xAC00..=0xD7AF => hangul += 1,
+            0x3400..=0x4DBF | 0x4E00..=0x9FFF | 0xF900..=0xFAFF | 0x20000..=0x2FFFF => han += 1,
+            _ if c.is_alphabetic() => letters += 1,
+            _ => continue,
         }
+    }
+    if kana > 0 {
+        Some("ja")
+    } else if hangul > 0 && hangul >= han {
+        Some("ko")
+    } else if han > 0 && han >= letters {
+        Some("zh_cn")
     } else {
-        return Ok("en");
+        None
+    }
+}
+
+fn map_lang(lang: Lang) -> Option<&'static str> {
+    Some(match lang {
+        Lang::Cmn => "zh_cn",
+        Lang::Jpn => "ja",
+        Lang::Eng => "en",
+        Lang::Kor => "ko",
+        Lang::Fra => "fr",
+        Lang::Spa => "es",
+        Lang::Deu => "de",
+        Lang::Rus => "ru",
+        Lang::Ita => "it",
+        Lang::Por => "pt_pt",
+        Lang::Tur => "tr",
+        Lang::Ara => "ar",
+        Lang::Vie => "vi",
+        Lang::Tha => "th",
+        Lang::Ind => "id",
+        Lang::Hin => "hi",
+        Lang::Nob => "nb_no",
+        Lang::Pes => "fa",
+        Lang::Ukr => "uk",
+        _ => return None,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::detect;
+
+    #[test]
+    fn detects_common_languages() {
+        assert_eq!(detect("今天天气很好，我们去公园散步吧。"), "zh_cn");
+        assert_eq!(detect("今日はいい天気ですね。"), "ja");
+        assert_eq!(detect("東京都"), "zh_cn"); // kanji only is ambiguous; treated as Chinese
+        assert_eq!(detect("오늘 날씨가 정말 좋네요."), "ko");
+        assert_eq!(detect("The weather is really nice today."), "en");
+        assert_eq!(detect("Сегодня очень хорошая погода."), "ru");
+        assert_eq!(detect("Il fait très beau aujourd'hui, allons au parc."), "fr");
     }
 }

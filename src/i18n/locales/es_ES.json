@@ -248,9 +248,6 @@
                 "qrcode": {
                     "title": "Código QR"
                 },
-                "tesseract": {
-                    "title": "Tesseract.js"
-                },
                 "simple_latex_ocr": {
                     "title": "Simple LaTeX",
                     "token": "Token"

@@ -10,7 +10,7 @@ import { Dropdown } from '@nextui-org/react';
 import { info } from 'tauri-plugin-log-api';
 import { Button } from '@nextui-org/react';
 import { Switch } from '@nextui-org/react';
-import 'flag-icons/css/flag-icons.min.css';
+import './flags.css';
 import { Input } from '@nextui-org/react';
 import { Card } from '@nextui-org/react';
 import { invoke } from '@tauri-apps/api';

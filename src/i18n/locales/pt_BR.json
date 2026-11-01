@@ -316,9 +316,6 @@
                 "system": {
                     "title": "OCR do Sistema"
                 },
-                "tesseract": {
-                    "title": "Tesseract.js"
-                },
                 "baidu_ocr": {
                     "title": "OCR da Baidu",
                     "client_id": "Chave API",

@@ -313,9 +313,6 @@
                 "system": {
                     "title": "系統 OCR"
                 },
-                "tesseract": {
-                    "title": "Tesseract.js"
-                },
                 "baidu_ocr": {
                     "title": "百度 OCR",
                     "client_id": "API Key",
