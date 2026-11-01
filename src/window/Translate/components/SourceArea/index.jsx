@@ -37,6 +37,18 @@ export default function SourceArea(props) {
     const textAreaRef = useRef();
     const handleNewTextRef = useRef();
     const initializedRef = useRef(false);
+    // On first open both `new_text` and the initial get_text may deliver the same text;
+    // remember which source handled what so the duplicate is dropped
+    const lastTextRef = useRef({ source: '', text: null, time: 0 });
+    const handleTextOnce = (source, text) => {
+        const last = lastTextRef.current;
+        if (last.source !== source && last.text === text && Date.now() - last.time < 2000) {
+            lastTextRef.current = { source: '', text: null, time: 0 };
+            return;
+        }
+        lastTextRef.current = { source, text, time: Date.now() };
+        handleNewTextRef.current(text);
+    };
 
     // clear the text and every result, so a previous translation is never shown for new input
     const clearSourceText = () => {
@@ -138,7 +150,7 @@ export default function SourceArea(props) {
     useEffect(() => {
         const unlisten = listen('new_text', (event) => {
             appWindow.setFocus();
-            handleNewTextRef.current(event.payload);
+            handleTextOnce('event', event.payload);
         });
         window.addEventListener(WINDOW_HIDE_EVENT, clearSourceText);
         return () => {
@@ -161,7 +173,7 @@ export default function SourceArea(props) {
         ) {
             initializedRef.current = true;
             invoke('get_text').then((v) => {
-                handleNewTextRef.current(v);
+                handleTextOnce('get_text', v);
             });
         }
     }, [deleteNewline, incrementalTranslate, recognizeLanguage, recognizeServiceList, hideWindow]);

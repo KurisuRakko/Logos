@@ -7,6 +7,8 @@ use std::time::SystemTime;
 // Last full-screen capture, kept in memory so cut_image does not decode the PNG again
 pub static SCREENSHOT: Mutex<Option<RgbaImage>> = Mutex::new(None);
 // Last cut result, shared by get_base64 / copy_img / system_ocr
+// Physical position of the monitor the screenshot window was last opened on
+pub static SCREENSHOT_TARGET: Mutex<Option<(i32, i32)>> = Mutex::new(None);
 pub static SCREENSHOT_CUT: Mutex<Option<CutImage>> = Mutex::new(None);
 
 pub struct CutImage {
@@ -63,6 +65,13 @@ pub fn encode_png(img: &RgbaImage) -> Result<Vec<u8>, ImageError> {
 // Crop the last screenshot and keep the result in memory; also written to
 // pot_screenshot_cut.png because some recognize services read that file
 pub fn cut_screenshot(left: u32, top: u32, width: u32, height: u32) {
+    // Any failure below must not leave the previous cut looking valid
+    *SCREENSHOT_CUT.lock().unwrap() = None;
+    let _ = std::fs::remove_file(cache_file("pot_screenshot_cut.png"));
+    if width == 0 || height == 0 {
+        error!("Empty screenshot cut: {}x{}", width, height);
+        return;
+    }
     use image::imageops::crop_imm;
     let cut = {
         let mut guard = SCREENSHOT.lock().unwrap();
@@ -79,6 +88,10 @@ pub fn cut_screenshot(left: u32, top: u32, width: u32, height: u32) {
         let full = guard.as_ref().unwrap();
         crop_imm(full, left, top, width, height).to_image()
     };
+    if cut.width() == 0 || cut.height() == 0 {
+        error!("Screenshot cut is outside the image");
+        return;
+    }
     let png = match encode_png(&cut) {
         Ok(v) => v,
         Err(e) => {
@@ -102,7 +115,12 @@ pub fn cut_screenshot(left: u32, top: u32, width: u32, height: u32) {
 }
 
 #[tauri::command]
-pub fn screenshot(x: i32, y: i32) {
+pub fn get_screenshot_target() -> Option<(i32, i32)> {
+    *SCREENSHOT_TARGET.lock().unwrap()
+}
+
+#[tauri::command]
+pub fn screenshot(x: i32, y: i32) -> Result<(), String> {
     use screenshots::{Compression, Screen};
     info!("Screenshot screen with position: x={}, y={}", x, y);
     let screens = Screen::all().unwrap();
@@ -116,7 +134,9 @@ pub fn screenshot(x: i32, y: i32) {
             std::fs::write(cache_file("pot_screenshot.png"), buffer).unwrap();
             *SCREENSHOT.lock().unwrap() =
                 RgbaImage::from_raw(image.width(), image.height(), image.rgba().clone());
-            break;
+            return Ok(());
         }
     }
+    error!("No screen at position: x={}, y={}", x, y);
+    Err(format!("No screen at position: x={}, y={}", x, y))
 }

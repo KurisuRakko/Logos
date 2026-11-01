@@ -297,11 +297,9 @@ pub fn image_translate() {
 }
 
 pub fn recognize_window() {
-    let (window, exists) = build_window("recognize", "Recognize");
-    if exists {
-        window.emit("new_image", "").unwrap();
-        return;
-    }
+    // A reused window is resized/re-centred like a new one. No `reactivate` here: the page
+    // listens to both events and `new_image` alone makes it load the image and show itself
+    let (window, _exists) = build_window("recognize", "Recognize");
     let width = match get("recognize_window_width") {
         Some(v) => v.as_i64().unwrap(),
         None => {
@@ -325,9 +323,6 @@ pub fn recognize_window() {
         ))
         .unwrap();
     window.center().unwrap();
-    if exists {
-        reactivate(&window, true);
-    }
     window.emit("new_image", "").unwrap();
 }
 
@@ -335,14 +330,18 @@ pub fn recognize_window() {
 fn screenshot_window() -> Window {
     let (window, exists) = build_window("screenshot", "Screenshot");
 
+    // The monitor under the mouse; the page captures this one instead of asking currentMonitor(),
+    // which can still report the old monitor right after the hidden window is moved
+    use mouse_position::mouse_position::Mouse;
+    let (x, y) = match Mouse::get_mouse_position() {
+        Mouse::Position { x, y } => (x, y),
+        Mouse::Error => (0, 0),
+    };
+    let position = *get_current_monitor(x, y).position();
+    *crate::screenshot::SCREENSHOT_TARGET.lock().unwrap() = Some((position.x, position.y));
+
     if exists {
-        // Move the reused window to the monitor under the mouse before going fullscreen again
-        use mouse_position::mouse_position::Mouse;
-        let (x, y) = match Mouse::get_mouse_position() {
-            Mouse::Position { x, y } => (x, y),
-            Mouse::Error => (0, 0),
-        };
-        let position = *get_current_monitor(x, y).position();
+        // Move the reused window to the target monitor before going fullscreen again
         window.set_fullscreen(false).unwrap_or_default();
         window
             .set_position(tauri::PhysicalPosition::new(position.x, position.y))
@@ -364,7 +363,12 @@ fn screenshot_window() -> Window {
     if exists {
         // Not shown here: the page captures the screen first and shows itself once the
         // new image is loaded, otherwise the capture would contain this window
-        reactivate(&window, false);
+        window
+            .emit(
+                "window_reactivate",
+                serde_json::json!({ "x": position.x, "y": position.y }),
+            )
+            .unwrap_or_default();
     }
     window
 }

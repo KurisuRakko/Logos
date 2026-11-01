@@ -17,7 +17,7 @@ use hotkey::*;
 use lang_detect::*;
 use log::info;
 use once_cell::sync::OnceCell;
-use screenshot::screenshot;
+use screenshot::{get_screenshot_target, screenshot};
 use std::sync::Mutex;
 use system_ocr::*;
 use tauri::api::notification::Notification;
@@ -111,6 +111,7 @@ fn main() {
             register_shortcut_by_frontend,
             update_tray,
             screenshot,
+            get_screenshot_target,
             lang_detect,
             font_list
         ])

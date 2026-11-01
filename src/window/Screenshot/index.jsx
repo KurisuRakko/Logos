@@ -21,25 +21,35 @@ export default function Screenshot() {
     const imgRef = useRef();
 
     // 截屏并加载图片，图片加载完成后由 onLoad 显示窗口
-    const capture = () => {
-        currentMonitor().then((monitor) => {
-            const position = monitor.position;
-            invoke('screenshot', { x: position.x, y: position.y }).then(() => {
-                appCacheDir().then((appCacheDirPath) => {
-                    join(appCacheDirPath, 'pot_screenshot.png').then((filePath) => {
-                        // the file path never changes, so bust the webview image cache on every capture
-                        setImgurl(`${convertFileSrc(filePath)}?t=${Date.now()}`);
-                    });
-                });
-            });
-        });
+    // target 是后端给出的目标显示器物理坐标；没有时才回退 currentMonitor()
+    const capture = async (target) => {
+        try {
+            if (!target) {
+                target = await invoke('get_screenshot_target');
+                target = target ? { x: target[0], y: target[1] } : null;
+            }
+            if (!target) {
+                const monitor = await currentMonitor();
+                target = { x: monitor.position.x, y: monitor.position.y };
+            }
+            await invoke('screenshot', { x: target.x, y: target.y });
+        } catch (e) {
+            // 截屏失败时不能显示上一张图
+            warn(`Screenshot failed: ${e}`);
+            setImgurl('');
+            void appWindow.hide();
+            return;
+        }
+        const filePath = await join(await appCacheDir(), 'pot_screenshot.png');
+        // the file path never changes, so bust the webview image cache on every capture
+        setImgurl(`${convertFileSrc(filePath)}?t=${Date.now()}`);
     };
 
     useEffect(() => {
         capture();
         // the window is kept alive: the backend repositions it (without showing) and emits this event
-        const unlisten = listen('window_reactivate', () => {
-            capture();
+        const unlisten = listen('window_reactivate', (event) => {
+            capture(event.payload);
         });
         // drop the full-screen image before hiding to release its memory
         const reset = () => {
