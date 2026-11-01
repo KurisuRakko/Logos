@@ -111,11 +111,3 @@ pub fn font_list() -> Result<Vec<String>, Error> {
     Ok(source.all_families()?)
 }
 
-#[tauri::command]
-pub fn open_devtools(window: tauri::Window) {
-    if !window.is_devtools_open() {
-        window.open_devtools();
-    } else {
-        window.close_devtools();
-    }
-}

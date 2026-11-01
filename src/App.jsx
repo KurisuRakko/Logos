@@ -5,7 +5,6 @@ import { warn } from 'tauri-plugin-log-api';
 import React, { Suspense, lazy, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
-import { invoke } from '@tauri-apps/api/tauri';
 import { dismissWindow } from './utils/window';
 import { store } from './utils/store';
 import { useConfig } from './hooks';
@@ -21,7 +20,6 @@ const windowMap = {
 };
 
 export default function App() {
-    const [devMode] = useConfig('dev_mode', false);
     const [appTheme] = useConfig('app_theme', 'system');
     const [appLanguage] = useConfig('app_language', 'en');
     const [appFont] = useConfig('app_font', 'default');
@@ -40,9 +38,6 @@ export default function App() {
             if (e.ctrlKey && !allowKeys.includes(e.key.toLowerCase())) {
                 e.preventDefault();
             }
-            if (devMode && e.key === 'F12') {
-                await invoke('open_devtools');
-            }
             if (e.key.startsWith('F') && e.key.length > 1) {
                 e.preventDefault();
             }
@@ -54,7 +49,7 @@ export default function App() {
         return () => {
             document.removeEventListener('keydown', onKeyDown);
         };
-    }, [devMode]);
+    }, []);
 
     useEffect(() => {
         if (appTheme !== null) {

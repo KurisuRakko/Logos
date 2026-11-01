@@ -1,6 +1,8 @@
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Button } from '@nextui-org/react';
-import { atom, useAtom, useSetAtom } from 'jotai';
+import { atom, useAtom, useSetAtom, useAtomValue } from 'jotai';
+import { invoke } from '@tauri-apps/api/tauri';
 import { useTranslation } from 'react-i18next';
+import { HiTranslate } from 'react-icons/hi';
 import { GiCycle } from 'react-icons/gi';
 import React, { useEffect } from 'react';
 import { nanoid } from 'nanoid';
@@ -10,6 +12,7 @@ import { useConfig } from '../../../hooks';
 import { osType } from '../../../utils/env';
 import { getServiceName, INSTANCE_NAME_CONFIG_KEY, getDisplayInstanceName } from '../../../utils/service_instance';
 import { WINDOW_HIDE_EVENT } from '../../../utils/window';
+import { textAtom } from '../TextArea';
 
 export const currentServiceInstanceKeyAtom = atom();
 export const languageAtom = atom();
@@ -21,6 +24,7 @@ export default function ControlArea(props) {
     const setRecognizeFlag = useSetAtom(recognizeFlagAtom);
     const [currentServiceInstanceKey, setCurrentServiceInstanceKey] = useAtom(currentServiceInstanceKeyAtom);
     const [language, setLanguage] = useAtom(languageAtom);
+    const text = useAtomValue(textAtom);
     const { t } = useTranslation();
 
     function getInstanceName(instanceKey, serviceNameSupplier) {
@@ -143,6 +147,20 @@ export default function ControlArea(props) {
                 }}
             >
                 {t('recognize.recognize')}
+            </Button>
+            <Button
+                variant='flat'
+                color='primary'
+                size='sm'
+                className='my-auto'
+                startContent={<HiTranslate className='text-[16px]' />}
+                onPress={async () => {
+                    if (text) {
+                        await invoke('text_translate', { text });
+                    }
+                }}
+            >
+                {t('recognize.translate')}
             </Button>
         </div>
     );

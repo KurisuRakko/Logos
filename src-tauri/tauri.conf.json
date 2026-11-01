@@ -14,7 +14,6 @@
         "allowlist": {
             "all": false,
             "shell": {
-                "all": true,
                 "open": ".*"
             },
             "path": {
@@ -24,7 +23,7 @@
                 "all": true
             },
             "clipboard": {
-                "all": true
+                "writeText": true
             },
             "globalShortcut": {
                 "all": true
@@ -46,20 +45,14 @@
             "protocol": {
                 "asset": true,
                 "assetScope": [
-                    "$CACHE/**",
-                    "$CONFIG/**"
-                ]
-            },
-            "fs": {
-                "all": true,
-                "scope": [
-                    "$APPCONFIG/**",
                     "$APPCACHE/**"
                 ]
             },
-            "dialog": {
-                "open": true,
-                "save": true
+            "fs": {
+                "readFile": true,
+                "scope": [
+                    "$APPCACHE/**"
+                ]
             }
         },
         "bundle": {

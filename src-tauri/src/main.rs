@@ -25,6 +25,7 @@ use tauri::Manager;
 use tauri_plugin_log::LogTarget;
 use tray::*;
 use window::config_window;
+use window::text_translate;
 
 // Global AppHandle
 pub static APP: OnceCell<tauri::AppHandle> = OnceCell::new();
@@ -106,7 +107,7 @@ fn main() {
             system_ocr,
             set_proxy,
             unset_proxy,
-            open_devtools,
+            text_translate,
             register_shortcut_by_frontend,
             update_tray,
             screenshot,
