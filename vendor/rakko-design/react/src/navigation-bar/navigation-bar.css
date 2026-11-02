@@ -1,0 +1,126 @@
+/* rk-navigation-bar：iOS 式导航栏。材质、滚动渐显与到顶透明来自 TopBar（data-glass="chrome"，glass.css），
+   这里只管尺寸与排布：44px 内容高 + 顶部安全区；左右各一个弹性栏，小标题居中不受两侧宽度影响。
+   选择器叠上 .rk-top-bar 提高一档特异性，压过 top-bar.css 的同名单类规则，与拼接顺序无关。
+   --rk-navigation-bar-max-width：内容列宽（大标题的盒宽）；栏内容区比它宽 16px（两侧各 8px，按钮命中区外扩）。 */
+
+.rk-top-bar.rk-navigation-bar {
+  display: block;
+  min-height: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+
+.rk-navigation-bar__inner {
+  /* 左右两区换内容时旧内容的克隆绝对定位在这里（useSlotCrossfade） */
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  height: 44px;
+  max-width: calc(var(--rk-navigation-bar-max-width, 100vw) + 16px);
+  margin: 0 auto;
+  padding: 0 8px;
+}
+
+.rk-navigation-bar__leading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 返回键：chevron 贴着栏的左内边距（iOS 的「‹ 文件夹」），文字过长省略 */
+.rk-button.rk-navigation-bar__back {
+  max-width: 100%;
+  margin-left: -4px;
+}
+
+.rk-button.rk-navigation-bar__back--icon {
+  padding-right: 2px;
+}
+
+.rk-top-bar__title.rk-navigation-bar__title {
+  font-size: var(--text-copy-16);
+  line-height: 1.25;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0;
+  translate: 0 5px;
+  transition:
+    opacity var(--motion-duration-state) var(--motion-ease-standard),
+    translate var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+.rk-top-bar__title.rk-navigation-bar__title[data-visible] {
+  opacity: 1;
+  translate: none;
+}
+
+.rk-top-bar__actions.rk-navigation-bar__actions,
+.rk-navigation-bar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  min-width: 0;
+  margin-left: 0;
+}
+
+/* 页面大标题：栏下方、随内容滚动。折叠时整行收起（行高 + 透明度），后面的搜索框随之上移；展开时反向。
+   外层 grid 0fr ↔ 1fr 做高度，中层裁剪，内层是 <h1>（量位置用它自身的矩形，不受裁剪影响）。 */
+.rk-navigation-bar__large-title-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--motion-spring-smooth-duration) var(--motion-spring-smooth),
+    opacity var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-navigation-bar__large-title-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rk-navigation-bar__large-title {
+  box-sizing: border-box;
+  max-width: var(--rk-navigation-bar-max-width, 100vw);
+  margin: 2px auto 0;
+  padding: 0 calc(16px + env(safe-area-inset-right)) 8px calc(16px + env(safe-area-inset-left));
+  font-size: var(--text-title-28);
+  line-height: var(--text-title-28--line-height);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--color-neutral-10);
+  overflow-wrap: anywhere;
+}
+
+/* 折叠大标题：
+   - 显式 largeTitleCollapsed（data-collapse="collapsed"）；
+   - 自动（data-collapse="auto"）：同一导航层里有激活的 SearchField。在导航栈里限定在本层 .rk-nav-layer 内
+     （下层页面的搜索框还留在 DOM 里，不能影响顶层）；不在栈里时看整页，但两边都排除栈内的元素，
+     页面外另有导航栈时也不互相误伤。
+   折叠期间栏里的小标题也隐藏：大标题是被折叠的，不是滚走的。 */
+.rk-navigation-bar__large-title-wrap[data-collapse='collapsed'],
+.rk-nav-layer:has(.rk-search-field[data-active]) .rk-navigation-bar__large-title-wrap[data-collapse='auto'],
+body:has(.rk-search-field[data-active]:not(.rk-nav-layer *)) .rk-navigation-bar__large-title-wrap[data-collapse='auto']:not(.rk-nav-layer *) {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.rk-navigation-bar[data-collapse='collapsed'] .rk-top-bar__title.rk-navigation-bar__title,
+.rk-nav-layer:has(.rk-search-field[data-active]) .rk-navigation-bar[data-collapse='auto'] .rk-top-bar__title.rk-navigation-bar__title,
+body:has(.rk-search-field[data-active]:not(.rk-nav-layer *)) .rk-navigation-bar[data-collapse='auto']:not(.rk-nav-layer *) .rk-top-bar__title.rk-navigation-bar__title {
+  opacity: 0;
+}
+
+/* 减弱动态效果：去掉位移与行高折叠的过渡，保留淡入淡出。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-top-bar__title.rk-navigation-bar__title,
+  .rk-top-bar__title.rk-navigation-bar__title[data-visible] {
+    translate: none;
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+
+  .rk-navigation-bar__large-title-wrap {
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+}

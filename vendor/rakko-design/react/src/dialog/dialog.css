@@ -1,0 +1,93 @@
+/* rk-dialog 视觉移植自 showcase snippets/Modal.tsx 的 scrim 与 panel。
+   遮罩只压暗不模糊，玻璃在面板上（data-glass="panel"，材质见 glass.css）。 */
+
+.rk-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-overlay);
+  background: rgb(0 0 0 / var(--glass-scrim-opacity));
+  opacity: 1;
+  transition: opacity var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+.rk-dialog__backdrop[data-starting-style] {
+  opacity: 0;
+}
+
+.rk-dialog__backdrop[data-ending-style] {
+  opacity: 0;
+  transition-duration: var(--motion-duration-exit);
+}
+
+.rk-dialog {
+  box-sizing: border-box;
+  position: fixed;
+  /* 在 iOS 可见区内居中：键盘弹出时 visualViewport 变矮，top 跟着上移（viewport.ts 写变量）。
+     未安装追踪时回退为 0px + 100% / 2，即原来的 top: 50%（fixed 元素的百分比按视口算，不依赖 dvh 支持）。 */
+  top: calc(var(--rk-visual-top, 0px) + var(--rk-visual-height, 100%) / 2);
+  left: 50%;
+  z-index: var(--layer-overlay);
+  display: grid;
+  gap: 16px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(var(--rk-visual-height, 100%) - 32px);
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 12px;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  /* 独立的 scale 属性排在 transform 之后作用：原点设到 0 0（= 位移后的面板中心），缩放才以面板中心为原点。 */
+  transform-origin: 0 0;
+  transition:
+    opacity var(--motion-duration-enter) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy),
+    top var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+/* iOS 警告框：入场从 1.08 缩到 1 + 淡入（snappy 弹簧），退场淡出并略缩到 0.96。
+   都是 CSS transition，Base UI 中途改状态时从当前值接着过渡（可打断）。
+   键盘升降时 top 跟着走，走 smooth 弹簧。移植自 RakkoNotes motion-overrides.css。 */
+.rk-dialog[data-starting-style] {
+  opacity: 0;
+  scale: 1.08;
+}
+
+/* 退场时缩放比透明度收尾晚，这段时间面板已看不见：不再接点击，免得挡住刚露出来的页面。 */
+.rk-dialog[data-ending-style] {
+  opacity: 0;
+  scale: 0.96;
+  pointer-events: none;
+  transition:
+    opacity var(--motion-duration-exit) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy),
+    top var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+.rk-dialog__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-neutral-10);
+}
+
+.rk-dialog__description {
+  margin: 8px 0 0;
+  color: var(--color-neutral-7);
+  line-height: 1.55;
+}
+
+/* 减少动态效果：只留短淡入淡出；不缩放，键盘升降引起的 top 变化直接跳到位。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-dialog__backdrop,
+  .rk-dialog__backdrop[data-ending-style] {
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+
+  .rk-dialog,
+  .rk-dialog[data-starting-style],
+  .rk-dialog[data-ending-style] {
+    translate: none;
+    scale: none;
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+}

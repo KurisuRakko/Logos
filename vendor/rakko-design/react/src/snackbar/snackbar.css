@@ -1,0 +1,127 @@
+/* rk-snackbar 视觉移植自 showcase motion.css 的 .motion-snackbar；
+   单条底部居中，n-10 底 + whisper 阴影。视口不拦截点击（pointer-events: none）。
+   --rk-snackbar-offset：应用自己贴底的栏（如编辑器辅助栏）额外让出的高度，叠加在默认底距上。
+   底距三种情况：默认 16px；页面有 BottomToolbar 时工具栏上方 8px；键盘弹出时键盘上方 16px（优先）。
+   底距换档（工具栏出现 / 键盘升降 / offset 变化）时 bottom 走 smooth 弹簧。 */
+
+.rk-snackbar-viewport {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(16px + var(--rk-snackbar-offset, 0px));
+  z-index: var(--layer-toast);
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+  transition: bottom var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+/* 页面上有 BottomToolbar：抬到工具栏上沿之上 8px。
+   在导航栈里只认顶层导航层的工具栏——下层页面的工具栏虽然 display: none，仍在 DOM 里；
+   不在栈里时认页面上任一个，但排除栈内的，页面外另有导航栈时下层的工具栏不会误抬。
+   键盘弹出时不适用（:not([data-rk-keyboard])）：工具栏此时被键盘盖住，以下面的键盘规则为准。
+   两条规则互斥，与特异性、先后顺序都无关。工具栏自己淡出的场景（编辑态）由应用用 --rk-snackbar-offset 抵消。 */
+:root:not([data-rk-keyboard]):has(.rk-nav-layer[data-nav-state='top'] .rk-bottom-toolbar) .rk-snackbar-viewport,
+:root:not([data-rk-keyboard]):has(.rk-bottom-toolbar:not(.rk-nav-layer *)) .rk-snackbar-viewport {
+  bottom: calc(var(--rk-bottom-toolbar-space, calc(49px + env(safe-area-inset-bottom))) + 8px + var(--rk-snackbar-offset, 0px));
+}
+
+/* iOS 键盘弹出（viewport.ts 写 data-rk-keyboard）：抬到键盘上沿之上 16px。 */
+:root[data-rk-keyboard] .rk-snackbar-viewport {
+  bottom: calc(var(--rk-keyboard-inset, 0px) + 16px + var(--rk-snackbar-offset, 0px));
+}
+
+/* 所有实例叠放同一格，淘汰中的旧实例在原位淡出，不挤动新实例。 */
+.rk-snackbar-viewport > * {
+  grid-area: 1 / 1;
+  pointer-events: auto;
+}
+
+/* 尺寸对齐 Material Design 2 snackbar：单行 48px 高、4px 圆角，宽度随内容在 344–672px 之间，
+   窄屏（≤ 480px）铺满视口宽度。左右留白由文案（左 16px / 右 8px）与 root 右内边距（8px）承担，
+   动作按钮距右缘 8px。 */
+.rk-snackbar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-width: min(344px, 100%);
+  max-width: min(672px, 100%);
+  min-height: 48px;
+  padding: 0 8px 0 0;
+  border-radius: 4px;
+  opacity: 1;
+  transition:
+    opacity var(--motion-duration-enter) var(--motion-ease-standard),
+    translate var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+/* 从下方 24px smooth 弹簧升起 + 淡入；退场 snappy 弹簧沉下 + 淡出，退场中不接点击。
+   移植自 RakkoNotes motion-overrides.css。 */
+.rk-snackbar[data-starting-style],
+.rk-snackbar[data-ending-style] {
+  opacity: 0;
+  translate: 0 24px;
+}
+
+.rk-snackbar[data-ending-style] {
+  pointer-events: none;
+  transition:
+    opacity var(--motion-duration-exit) var(--motion-ease-standard),
+    translate var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+/* limit 超出的旧实例由 Base UI 标记 data-limited 而非移除：隐藏并停止交互。 */
+.rk-snackbar[data-limited] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .rk-snackbar {
+    min-width: 100%;
+  }
+}
+
+/* Base UI 的 Toast.Title 渲染为 <h2>：必须清掉浏览器默认的 1.5em 字号、粗体和上下外边距，
+   否则单行 snackbar 会被撑到 90px。上下 13px + 20px 行高 + inverse 材质上下各 1px 边框 = 48px。
+   文案长时换行，动作按钮保持一行。 */
+.rk-snackbar__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 13px 8px 13px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.rk-snackbar__action {
+  appearance: none;
+  flex-shrink: 0;
+  min-width: 64px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 减少动态效果：只留短淡入淡出，位置直接到位。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-snackbar,
+  .rk-snackbar[data-starting-style],
+  .rk-snackbar[data-ending-style] {
+    translate: none;
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+
+  .rk-snackbar-viewport {
+    transition: none;
+  }
+}

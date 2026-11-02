@@ -1,0 +1,41 @@
+/* rk-tooltip 视觉移植自 showcase motion.css 的 .motion-tooltip（n-10 底、n-1 字）。
+   定位交给 Base UI Positioner（side=top、sideOffset=8），这里只负责浮层外观与入退场。 */
+
+/* Positioner 是 Popup 的父层（Base UI 的定位元素）：层级写在它身上，
+   Popup 的 rk-* 类名仍然只属于 Popup，消费方的 className 也照旧追加在那里。 */
+.rk-tooltip__positioner {
+  z-index: var(--layer-popup);
+}
+
+.rk-tooltip {
+  width: max-content;
+  max-width: 180px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-neutral-10) 10%, transparent);
+  border-radius: 6px;
+  background: var(--color-neutral-10);
+  color: var(--color-neutral-1);
+  font-size: 12px;
+  line-height: 1.4;
+  transition:
+    opacity var(--motion-duration-state) var(--motion-ease-standard),
+    transform var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+/* 入场首帧 / 退场末帧：淡出 + 向上 4px 位移（原 .motion-tooltip 的 translate 模式）。 */
+.rk-tooltip[data-starting-style],
+.rk-tooltip[data-ending-style] {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-tooltip,
+  .rk-tooltip[data-starting-style],
+  .rk-tooltip[data-ending-style],
+  .rk-tooltip[data-instant] {
+    transition-duration: 1ms;
+    transform: none;
+  }
+}

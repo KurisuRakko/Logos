@@ -1,0 +1,161 @@
+/* rk-lift-menu：长按 / 右键的浮起菜单，叠在 rk-menu 上（材质、分隔线、高亮仍归 menu.css）。
+   弹出：从锚点（浮起的源、按点；位置由 Base UI 的 --transform-origin 给出）长出来、缩回去——
+   缩放两个方向都走 snappy 弹簧（过渡可打断：中途反向从当前值接着走），透明度走 enter / exit 时长。
+   起点 .6（列表行）；media（长按图片，Rakko 定的样板）保持 .85。选择器都带 .rk-menu 前缀压过 menu.css，不靠拼接顺序。
+   参数照搬 RakkoNotes lists.css 的 .rn-context-menu。 */
+
+.rk-menu.rk-lift-menu {
+  min-width: 200px;
+  border-radius: 12px;
+  /* 长按打开时焦点落在弹层本身：不画浏览器默认焦点框，键盘导航的高亮在菜单项上 */
+  outline: none;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity var(--motion-duration-enter) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+.rk-menu.rk-lift-menu[data-starting-style],
+.rk-menu.rk-lift-menu[data-ending-style] {
+  opacity: 0;
+  scale: 0.6;
+  translate: none;
+}
+
+.rk-menu.rk-lift-menu[data-lift-variant='media'][data-starting-style],
+.rk-menu.rk-lift-menu[data-lift-variant='media'][data-ending-style] {
+  scale: 0.85;
+}
+
+.rk-menu.rk-lift-menu[data-ending-style] {
+  transition:
+    opacity var(--motion-duration-exit) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+/* 菜单项：文字在左、图标在右；比下拉 Menu 大一档，手指好点 */
+.rk-menu__item.rk-lift-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.33;
+}
+
+.rk-lift-menu__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* 勾选项：勾画在文字前 */
+.rk-lift-menu__check {
+  display: inline-flex;
+  flex: none;
+  margin-inline-end: -8px;
+}
+
+.rk-lift-menu__icon {
+  display: inline-flex;
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ 浮起层（lift-layer.tsx） */
+
+/* 全屏层：压暗的底 + 源的克隆，挂在 body 上。拦滚动 / 捏合交给 blockTouchScroll（JS）；
+   全屏层不用 touch-action: none——WebKit 卸载后会残留、锁死页面滚动 */
+.rk-lift-menu__layer {
+  --rk-lift-scrim: rgb(0 0 0 / 28%);
+  --rk-lift-shadow: 0 12px 40px rgb(0 0 0 / 30%);
+  --rk-lift-radius: 10px;
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-overlay);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* 深色底上 28% 黑几乎看不出，压得更深 */
+[data-theme='dark'] .rk-lift-menu__layer {
+  --rk-lift-scrim: rgb(0 0 0 / 55%);
+}
+
+/* 图片这类整块媒体：圆角 12px（与图片自身一致） */
+.rk-lift-menu__layer[data-variant='media'] {
+  --rk-lift-radius: 12px;
+}
+
+/* 飞回途中不挡点击 */
+.rk-lift-menu__layer[data-closing] {
+  pointer-events: none;
+}
+
+.rk-lift-menu__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--rk-lift-scrim);
+}
+
+.rk-lift-menu__preview {
+  position: absolute;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.rk-lift-menu__shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--rk-lift-radius);
+  box-shadow: var(--rk-lift-shadow);
+}
+
+/* 圆角与长按缩到 .97 时一致（.rk-swipe-row[data-holding]），起飞那一帧对得上 */
+.rk-lift-menu__clone {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--rk-lift-radius);
+  background: var(--rk-list-bg, var(--color-neutral-2));
+}
+
+/* SwipeRow 的克隆：根、裁切层、内容层都铺满；不带过渡与长按缩放，不画分隔线 */
+.rk-lift-menu__clone > .rk-swipe-row,
+.rk-lift-menu__clone > .rk-swipe-row > .rk-swipe-row__clip,
+.rk-lift-menu__clone .rk-swipe-row__content {
+  height: 100%;
+}
+
+.rk-lift-menu__clone .rk-swipe-row__content {
+  scale: none;
+  transition: none;
+}
+
+.rk-lift-menu__clone .rk-swipe-row__content::after {
+  display: none;
+}
+
+/* 浮起期间原物留着位置、不画 */
+[data-rk-lift-source] {
+  visibility: hidden;
+}
+
+/* 减弱动态效果：菜单不缩放，只淡入淡出（浮起层的动画由 lift-layer.tsx 按 reduced-motion 关掉） */
+@media (prefers-reduced-motion: reduce) {
+  .rk-menu.rk-lift-menu,
+  .rk-menu.rk-lift-menu[data-starting-style],
+  .rk-menu.rk-lift-menu[data-ending-style],
+  .rk-menu.rk-lift-menu[data-lift-variant='media'][data-starting-style],
+  .rk-menu.rk-lift-menu[data-lift-variant='media'][data-ending-style] {
+    scale: none;
+    translate: none;
+    transition: opacity var(--motion-duration-enter) var(--motion-ease-standard);
+  }
+
+  .rk-menu.rk-lift-menu[data-ending-style] {
+    transition-duration: var(--motion-duration-exit);
+  }
+}

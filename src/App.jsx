@@ -24,7 +24,7 @@ export default function App() {
     const [appFont] = useConfig('app_font', 'default');
     const [appFallbackFont] = useConfig('app_fallback_font', 'default');
     const [appFontSize] = useConfig('app_font_size', 16);
-    const { setTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const { i18n } = useTranslation();
 
     useEffect(() => {
@@ -75,6 +75,13 @@ export default function App() {
         }
     }, [appTheme]);
 
+    // NextUI follows the `dark` class, Rakko Design tokens follow data-theme
+    useEffect(() => {
+        if (resolvedTheme) {
+            document.documentElement.dataset.theme = resolvedTheme;
+        }
+    }, [resolvedTheme]);
+
     useEffect(() => {
         if (appLanguage !== null) {
             i18n.changeLanguage(appLanguage);
@@ -83,9 +90,16 @@ export default function App() {
 
     useEffect(() => {
         if (appFont !== null && appFallbackFont !== null) {
-            document.documentElement.style.fontFamily = `"${appFont === 'default' ? 'sans-serif' : appFont}","${
-                appFallbackFont === 'default' ? 'sans-serif' : appFallbackFont
-            }"`;
+            // fonts picked in settings go in front of the Rakko Design sans / serif stacks
+            const picked = [appFont, appFallbackFont].filter((font) => font !== 'default').map((font) => `"${font}"`);
+            const root = document.documentElement.style;
+            if (picked.length > 0) {
+                root.setProperty('--app-font-sans', `${picked.join(', ')}, var(--font-sans)`);
+                root.setProperty('--app-font-serif', `${picked.join(', ')}, var(--font-serif)`);
+            } else {
+                root.removeProperty('--app-font-sans');
+                root.removeProperty('--app-font-serif');
+            }
         }
         if (appFontSize !== null) {
             document.documentElement.style.fontSize = `${appFontSize}px`;

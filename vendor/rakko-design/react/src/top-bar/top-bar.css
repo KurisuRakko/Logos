@@ -1,0 +1,46 @@
+/* rk-top-bar：材质与渐显由 glass.css 的 data-glass="chrome" 提供，
+   这里只负责布局与内部控件（sticky 定位、行内排布、内部去边框）。 */
+
+.rk-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--layer-chrome);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 16px;
+  color: var(--color-neutral-9);
+}
+
+.rk-top-bar__title {
+  min-width: 0;
+  font: 500 15px/1.6 var(--font-sans);
+  color: var(--color-neutral-10);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rk-top-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+/* 顶栏内控件去掉胶囊自带边框，与 showcase 现有 .toolbar 内规则一致。 */
+.rk-top-bar .rk-icon-button {
+  border-color: transparent;
+}
+
+/* 顶栏内控件无边框：悬停与按下只保留填充与颜色变化，不出现胶囊边框。 */
+.rk-top-bar .rk-icon-button:not(:disabled):hover,
+.rk-top-bar .rk-icon-button[aria-pressed='true'] {
+  border-color: transparent;
+}
+
+.rk-top-bar .rk-segments {
+  border-color: transparent;
+  background: transparent;
+}

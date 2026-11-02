@@ -18,7 +18,10 @@ export default function Recognize() {
     const [autoCopy, setAutoCopy] = useConfig('recognize_auto_copy', false);
     const { t } = useTranslation();
     return (
-        <Card className='mb-[10px]'>
+        <Card
+            shadow='none'
+            className='mb-[10px] border-1 border-divider'
+        >
             <CardBody>
                 <div className='config-item'>
                     <h3 className='my-auto mx-0'>{t('config.recognize.language')}</h3>

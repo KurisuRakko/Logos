@@ -17,7 +17,7 @@ export default function About() {
                 draggable={false}
             />
             <div className='content-center'>
-                <h1 className='font-bold text-2xl text-center'>Logos</h1>
+                <h1 className='font-semibold text-2xl text-center'>Logos</h1>
                 <p className='text-center text-sm text-gray-500 mb-[5px]'>{appVersion}</p>
                 <Divider />
                 <div className='flex justify-between'>

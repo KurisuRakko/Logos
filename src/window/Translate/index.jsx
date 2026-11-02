@@ -2,7 +2,7 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { appWindow, currentMonitor } from '@tauri-apps/api/window';
 import { Spacer, Button } from '@nextui-org/react';
 import { AiFillCloseCircle } from 'react-icons/ai';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { BsPinFill } from 'react-icons/bs';
 
@@ -99,6 +99,7 @@ export default function Translate() {
     const [recognizeServiceInstanceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [hideLanguage] = useConfig('hide_language', false);
     const [pined, setPined] = useState(false);
+    const rootRef = useRef(null);
     const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(() =>
         loadServiceInstanceConfigMap([...translateServiceInstanceList, ...recognizeServiceInstanceList])
     );
@@ -147,6 +148,37 @@ export default function Translate() {
             window.removeEventListener(WINDOW_HIDE_EVENT, reset);
         };
     }, [alwaysOnTop]);
+    // 窗口出现动画：每次从隐藏状态被唤起时重播，隐藏时复位
+    useEffect(() => {
+        const root = rootRef.current;
+        let hidden = false;
+        const play = () => {
+            root.classList.remove('logos-window-enter');
+            void root.offsetWidth;
+            root.classList.add('logos-window-enter');
+        };
+        const onHide = () => {
+            hidden = true;
+            root.classList.remove('logos-window-enter');
+        };
+        const onShow = () => {
+            if (hidden) {
+                hidden = false;
+                play();
+            }
+        };
+        play();
+        window.addEventListener(WINDOW_HIDE_EVENT, onHide);
+        const unlistenList = [listen('window_reactivate', onShow), listen('new_text', onShow)];
+        return () => {
+            window.removeEventListener(WINDOW_HIDE_EVENT, onHide);
+            unlistenList.forEach((unlisten) => {
+                unlisten.then((f) => {
+                    f();
+                });
+            });
+        };
+    }, []);
     // 保存窗口位置
     useEffect(() => {
         if (windowPosition !== null && windowPosition === 'pre_state') {
@@ -226,9 +258,8 @@ export default function Translate() {
 
     return (
         <div
-            className={`bg-background h-screen w-screen ${
-                osType === 'Linux' && 'rounded-[10px] border-1 border-default-100'
-            }`}
+            ref={rootRef}
+            className={`bg-background h-screen w-screen ${osType === 'Linux' && 'rounded-lg border-1 border-divider'}`}
         >
             <div
                 className='fixed top-[5px] left-[5px] right-[5px] h-[30px]'

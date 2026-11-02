@@ -1,0 +1,14 @@
+/* rk-animated-list：FLIP 列表容器（行为全在 animated-list.tsx，这里只有两条布局约束）。 */
+
+/* 容器自成 BFC：首个子元素的 margin 不穿出去，交叉淡化的快照与原位对得上；
+   快照在容器里绝对定位，跟着容器一起移动 */
+.rk-animated-list {
+  position: relative;
+  display: flow-root;
+}
+
+/* 交叉淡化时旧内容的静态快照：里面的 CSS 进场动画不要重播 */
+.rk-animated-list__ghost,
+.rk-animated-list__ghost * {
+  animation: none !important;
+}

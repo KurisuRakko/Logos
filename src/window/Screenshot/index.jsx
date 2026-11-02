@@ -82,7 +82,7 @@ export default function Screenshot() {
                 }}
             />
             <div
-                className={`fixed bg-[#2080f020] border border-solid border-sky-500 ${!isMoved && 'hidden'}`}
+                className={`fixed bg-primary/10 border border-solid border-primary ${!isMoved && 'hidden'}`}
                 style={{
                     top: Math.min(mouseDownY, mouseMoveY),
                     left: Math.min(mouseDownX, mouseMoveX),

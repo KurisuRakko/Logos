@@ -1,3 +1,5 @@
+@import '../vendor/rakko-design/tokens.generated.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,10 +9,17 @@
     padding: 0;
 }
 
+/* window frame of the transparent window: one step above the 6px cards */
 html {
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     background: transparent !important;
     overflow: hidden;
+    color: var(--color-neutral-9);
+}
+
+::selection {
+    background: var(--color-neutral-4);
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 *::-webkit-scrollbar {
@@ -18,10 +27,64 @@ html {
 }
 
 *::-webkit-scrollbar-thumb {
-    background: #c0c1c550;
-    border-radius: 5px;
+    background: var(--color-neutral-4);
+    border-radius: var(--radius-control);
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    background: #c0c1c550;
+    background: var(--color-neutral-5);
+}
+
+/* the translate window is reused: replayed on every activation, plain opacity so input is never blocked */
+@keyframes logos-window-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+.logos-window-enter {
+    animation: logos-window-enter var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+@keyframes logos-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.logos-fade-in {
+    animation: logos-fade-in var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+/* height of a collapsible block follows its content without measuring it */
+.logos-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+.logos-collapse[data-open='true'] {
+    grid-template-rows: 1fr;
+}
+
+.logos-collapse > * {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* NextUI overlays skip their framer-motion animations (main.jsx); a short fade keeps them from popping */
+section[role='dialog'][aria-modal='true'],
+[data-slot='content'][data-open='true'],
+[role='tooltip'] {
+    animation: logos-fade-in var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }

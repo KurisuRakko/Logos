@@ -375,7 +375,7 @@ export default function SourceArea(props) {
         <div className={hideSource && windowType !== '[INPUT_TRANSLATE]' ? 'hidden' : ''}>
             <Card
                 shadow='none'
-                className='bg-content1 rounded-[10px] mt-[1px] pb-0'
+                className='bg-content1 rounded-card border-1 border-divider mt-[1px] pb-0'
             >
                 {isImage && (
                     <div className='flex justify-between items-center px-[12px] pt-[5px]'>
@@ -444,7 +444,7 @@ export default function SourceArea(props) {
                     <div className='px-[12px] pt-[5px]'>
                         <img
                             src={`data:image/png;base64,${imageBase64}`}
-                            className='w-full max-h-[160px] object-contain rounded-[6px]'
+                            className='w-full max-h-[160px] object-contain rounded-card'
                             draggable={false}
                         />
                     </div>
@@ -483,7 +483,7 @@ export default function SourceArea(props) {
                     />
                 </CardBody>
 
-                <CardFooter className='bg-content1 rounded-none rounded-b-[10px] flex justify-between px-[12px] p-[5px]'>
+                <CardFooter className='bg-content1 rounded-none flex justify-between px-[12px] p-[5px]'>
                     <div className='flex justify-start'>
                         <ButtonGroup className='mr-[5px]'>
                             <Tooltip content={t('translate.copy')}>
@@ -531,7 +531,6 @@ export default function SourceArea(props) {
                         {detectLanguage !== '' && (
                             <Chip
                                 size='sm'
-                                color='secondary'
                                 variant='dot'
                                 className='my-auto'
                             >
@@ -542,10 +541,9 @@ export default function SourceArea(props) {
                     <Tooltip content={t('translate.translate')}>
                         <Button
                             size='sm'
-                            color='primary'
                             variant='light'
                             isIconOnly
-                            className='text-[14px] font-bold'
+                            className='text-[14px] font-semibold'
                             startContent={<HiTranslate className='text-[16px]' />}
                             onPress={() => {
                                 translateNow(sourceText);

@@ -1,0 +1,50 @@
+/* rk-segments / rk-segment 视觉移植自 showcase motion.css 的
+   .motion-segments / .motion-segment span。选中（data-checked）同时改变
+   淡底与字色；state-layer 的 focus outline 缩到框内（overflow hidden 会裁掉外部 outline）。 */
+
+.rk-segments {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+
+.rk-segment {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-neutral-7);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-segment + .rk-segment {
+  border-left: 1px solid var(--color-border);
+}
+
+.rk-segment[data-checked] {
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-paper));
+  color: var(--color-accent);
+}
+
+/* 容器 overflow: hidden，焦点环改向内偏移以免被裁掉。 */
+.rk-segment[data-ripple]:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-segment {
+    transition-duration: 1ms;
+  }
+}

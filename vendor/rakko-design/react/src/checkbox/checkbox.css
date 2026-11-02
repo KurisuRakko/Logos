@@ -1,0 +1,43 @@
+/* rk-checkbox：契约内无既有视觉，此为主控层定的规格——
+   18px 方形、n-5 描边、checked/indeterminate 时 accent 实底 + 白色勾。 */
+
+.rk-checkbox {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-neutral-5);
+  border-radius: 4px;
+  background: var(--color-paper);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    border-color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-checkbox[data-checked],
+.rk-checkbox[data-indeterminate] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.rk-checkbox__indicator {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.rk-checkbox__indicator svg {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-checkbox {
+    transition-duration: 1ms;
+  }
+}

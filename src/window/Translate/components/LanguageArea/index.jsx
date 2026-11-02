@@ -58,9 +58,9 @@ export default function LanguageArea() {
     return (
         <Card
             shadow='none'
-            className='bg-content2 h-[35px] rounded-[10px]'
+            className='bg-content1 h-[35px] rounded-card border-1 border-divider'
         >
-            <CardFooter className='bg-content2 flex justify-between p-0 rounded-[10px]'>
+            <CardFooter className='bg-content1 flex justify-between p-0 rounded-none'>
                 <div className='flex'>
                     <Dropdown>
                         <DropdownTrigger>

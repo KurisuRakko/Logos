@@ -1,0 +1,82 @@
+/* rk-copy-button：图标与对勾叠放于同一位置；仅成功态（data-copied）切到对勾。
+   过渡只列具体属性：scale/opacity 切换与对勾描画。 */
+
+.rk-copy-button {
+  position: relative;
+}
+
+/* 图标在常规流中撑出按钮的内容尺寸；对勾绝对叠放在图标层之上。 */
+.rk-copy-button__icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rk-copy-button__check {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rk-copy-button svg {
+  display: block;
+}
+
+.rk-copy-button__icon {
+  scale: 1;
+  opacity: 1;
+  transition:
+    scale var(--motion-duration-exit) var(--motion-ease-standard),
+    opacity var(--motion-duration-exit) var(--motion-ease-standard);
+}
+
+.rk-copy-button__check {
+  scale: 0;
+  opacity: 0;
+  color: var(--color-success);
+  transition:
+    scale var(--motion-duration-enter) var(--motion-ease-standard),
+    opacity var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+.rk-copy-button__check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--motion-duration-enter)
+    var(--motion-ease-standard);
+}
+
+/* 进入成功态：对勾描画延迟半程，等圆形先出现。 */
+.rk-copy-button[data-copied] .rk-copy-button__icon {
+  scale: 0;
+  opacity: 0;
+  transition:
+    scale var(--motion-duration-exit) var(--motion-ease-standard),
+    opacity var(--motion-duration-exit) var(--motion-ease-standard);
+}
+
+.rk-copy-button[data-copied] .rk-copy-button__check {
+  scale: 1;
+  opacity: 1;
+}
+
+.rk-copy-button[data-copied] .rk-copy-button__check path {
+  stroke-dashoffset: 0;
+  transition-delay: calc(var(--motion-duration-enter) / 2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-copy-button__icon,
+  .rk-copy-button__check,
+  .rk-copy-button__check path,
+  .rk-copy-button[data-copied] .rk-copy-button__icon {
+    transition: none;
+  }
+
+  .rk-copy-button__check path {
+    stroke-dasharray: none;
+  }
+}

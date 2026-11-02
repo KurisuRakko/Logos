@@ -1,0 +1,55 @@
+/* rk-swap-text：换值不硬切（行为在 swap-text.tsx）。 */
+
+/* useSwapText / useSwapPresence 留下的旧内容静态拷贝：里面的 CSS 进场动画不要重播 */
+.rk-swap-ghost,
+.rk-swap-ghost * {
+  animation: none !important;
+}
+
+/* crossfade：新旧两份叠在同一个格子里，宽度取较宽的，换字过程中不跳 */
+.rk-swap-text--crossfade {
+  display: inline-grid;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.rk-swap-text__in,
+.rk-swap-text__out {
+  grid-area: 1 / 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rk-swap-text__in {
+  animation: rk-swap-text-in var(--motion-duration-state) var(--motion-ease-standard) both;
+}
+
+.rk-swap-text__out {
+  pointer-events: none;
+  animation: rk-swap-text-out var(--motion-duration-state) var(--motion-ease-standard) both;
+}
+
+@keyframes rk-swap-text-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rk-swap-text-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 直接换字：新字不淡入，旧字不画（没有动画就没有 animationend，留着的那份等下次换字时被替换） */
+  .rk-swap-text__in {
+    animation: none;
+  }
+
+  .rk-swap-text__out {
+    display: none;
+  }
+}

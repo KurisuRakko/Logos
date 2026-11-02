@@ -178,7 +178,7 @@ export function Config(props) {
                 <h3 className='my-auto'>Prompt List</h3>
                 <p className='text-[10px] text-default-700'>{t('services.translate.geminipro.prompt_description')}</p>
 
-                <div className='bg-content2 rounded-[10px] p-3'>
+                <div className='bg-content2 rounded-card p-3'>
                     {serviceConfig.promptList &&
                         serviceConfig.promptList.map((prompt, index) => {
                             return (
@@ -253,7 +253,6 @@ export function Config(props) {
                     type='submit'
                     isLoading={isLoading}
                     fullWidth
-                    color='primary'
                 >
                     {t('common.save')}
                 </Button>

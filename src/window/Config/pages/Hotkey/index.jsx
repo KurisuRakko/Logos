@@ -202,7 +202,10 @@ export default function Hotkey() {
     }
 
     return (
-        <Card>
+        <Card
+            shadow='none'
+            className='border-1 border-divider'
+        >
             <Toaster />
             <CardBody>
                 {hotkeyItems.map((item) => (

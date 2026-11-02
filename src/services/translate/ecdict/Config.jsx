@@ -12,7 +12,6 @@ export function Config(props) {
             <div>
                 <Button
                     fullWidth
-                    color='primary'
                     onPress={() => {
                         updateServiceList('ecdict');
                         onClose();

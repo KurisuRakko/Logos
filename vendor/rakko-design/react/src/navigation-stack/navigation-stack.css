@@ -1,0 +1,77 @@
+/* 导航栈（NavigationStack）：每个条目一层 .rk-nav-layer，data-nav-state 由 layers.ts 直接写（React 不管）：
+     top      顶层：正常文档流，用 window 滚动；
+     hidden   下层：不渲染、不可交互（另有 inert），React 状态保留；
+     pending  刚挂载、等就绪的新页：固定在视口、透明、不可点（有布局，能量尺寸、能聚焦）；
+     moving   转场 / 手势中：固定在视口，scrollTop 是该页的滚动位置（sticky 顶栏因此在原位）。
+   转场（transition.ts）：上层（data-nav-role="over"）从右推入 / 向右滑出，左缘一道淡阴影；下层在 -30% 与 0 之间移动，
+   上面盖一层渐深的暗色（.rk-nav-scrim）。两层的真栏（[data-rk-nav-bar]）隐藏（data-nav-ghosted），
+   由 .rk-nav-ghost 里的克隆原地交叉淡化，栏的背景只有一份、不随页面滑动。 */
+
+:root {
+  /* 被压在下面的那一页上盖的暗色（与 Dialog 遮罩同一种只压暗、不模糊的黑） */
+  --rk-nav-dim: rgb(0 0 0 / 8%);
+  /* 上层左缘的阴影 */
+  --rk-nav-edge-shadow: -6px 0 18px rgb(0 0 0 / 7%);
+}
+
+/* 深色底上同样的暗色几乎看不出来：加深压暗与阴影 */
+[data-theme='dark'] {
+  --rk-nav-dim: rgb(0 0 0 / 20%);
+  --rk-nav-edge-shadow: -6px 0 18px rgb(0 0 0 / 35%);
+}
+
+/* 不用浏览器的滚动锚定：返回后列表重拉、刚编辑的行移到最上面时，Chrome 会让页面跟着那一行滚走；
+   滚动位置由导航栈恢复，之后保持不动（iOS Safari 本来就没有滚动锚定，各端一致）。 */
+.rk-nav-layer {
+  overflow-anchor: none;
+}
+
+.rk-nav-layer[data-nav-state='hidden'] {
+  display: none;
+}
+
+.rk-nav-layer[data-nav-state='pending'],
+.rk-nav-layer[data-nav-state='moving'] {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-paper);
+  pointer-events: none;
+}
+
+.rk-nav-layer[data-nav-state='pending'] {
+  opacity: 0;
+}
+
+/* 层叠：下层 < 暗层 < 上层 < 栏的克隆（layers.css 的 chrome 子档）；都在浮层（Dialog / Sheet / Snackbar）之下 */
+.rk-nav-layer[data-nav-role='under'] {
+  z-index: var(--layer-nav-under);
+}
+
+.rk-nav-layer[data-nav-role='over'] {
+  z-index: var(--layer-nav-over);
+}
+
+.rk-nav-layer[data-nav-role='over'][data-nav-fx='slide'] {
+  box-shadow: var(--rk-nav-edge-shadow);
+}
+
+.rk-nav-layer[data-nav-ghosted] [data-rk-nav-bar] {
+  visibility: hidden;
+}
+
+.rk-nav-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-nav-scrim);
+  background: var(--rk-nav-dim);
+  pointer-events: none;
+}
+
+.rk-nav-ghost {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-chrome);
+  overflow: hidden;
+  pointer-events: none;
+}

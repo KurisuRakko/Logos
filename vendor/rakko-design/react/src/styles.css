@@ -1,0 +1,51 @@
+/* @rakko/react 样式入口：layers → state-layer → glass → 组件；build-css.mjs 按此顺序拼接 dist/styles.css。
+   layers.css 必须排第一：组件 CSS 的 z-index 全部写成 var(--layer-*)，变量得先落地。 */
+@import '../../design-system/src/layers.css';
+@import '../../design-system/src/state-layer.css';
+@import '../../design-system/src/glass.css';
+/* context-action 运行时的配套样式（压掉长按的 callout / 选区）：useContextAction 用到，随包带上 */
+@import '../../design-system/src/context-action.css';
+@import './button/button.css';
+@import './tooltip/tooltip.css';
+@import './switch/switch.css';
+@import './tabs/tabs.css';
+/* BottomNav 是 Tabs 的底栏容器扩展，紧跟依赖源；它的覆盖规则已用
+   .rk-bottom-nav 祖先前缀自锁，不依赖这里的拼接顺序。 */
+@import './bottom-nav/bottom-nav.css';
+/* SideNav 是同一套 Tabs 的桌面侧栏形态（与 BottomNav 同源、二选一渲染），
+   紧跟 BottomNav；覆盖规则同样已用 .rk-side-nav 祖先前缀自锁。 */
+@import './side-nav/side-nav.css';
+@import './dialog/dialog.css';
+@import './menu/menu.css';
+@import './filter-chip/filter-chip.css';
+@import './segmented-choice/segmented-choice.css';
+@import './checkbox/checkbox.css';
+@import './select/select.css';
+@import './popover/popover.css';
+@import './progress/progress.css';
+@import './snackbar/snackbar.css';
+@import './field/field.css';
+@import './copy-button/copy-button.css';
+@import './sheet/sheet.css';
+@import './top-bar/top-bar.css';
+@import './number-roll/number-roll.css';
+@import './morph-sheet/morph-sheet.css';
+/* 列表三件套：list.css 负责卡片与分隔线（含画在 SwipeRow 滑动层上的那条），
+   swipe-row.css 只管滑动层与操作区，两者选择器互不覆盖，顺序不敏感。 */
+@import './list/list.css';
+@import './swipe-row/swipe-row.css';
+@import './search-field/search-field.css';
+@import './avatar/avatar.css';
+@import './skeleton/skeleton.css';
+/* iOS 式导航栏与底部工具栏：导航栏叠在 top-bar.css 之上（选择器带 .rk-top-bar 前缀自锁）；
+   工具栏在 :root 定义 --rk-bottom-toolbar-space，snackbar.css 按它抬高。 */
+@import './navigation-bar/navigation-bar.css';
+@import './bottom-toolbar/bottom-toolbar.css';
+/* 导航栈：层、暗层与栏的克隆；z-index 排在 --layer-chrome 及以下（在浮层之下）。 */
+@import './navigation-stack/navigation-stack.css';
+/* AnimatedList 只有容器布局两条；LiftMenu 叠在 menu.css 之上，选择器已带 .rk-menu 前缀自锁 */
+@import './animated-list/animated-list.css';
+@import './lift-menu/lift-menu.css';
+/* 换值不硬切（SwapText 的 crossfade 与交接拷贝）、列表空状态 */
+@import './swap-text/swap-text.css';
+@import './empty-state/empty-state.css';

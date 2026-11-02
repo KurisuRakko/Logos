@@ -20,7 +20,7 @@ export default function ServiceItem(props) {
 
     return (
         serviceInstanceConfig !== null && (
-            <div className='bg-content2 rounded-md px-[10px] py-[20px] flex justify-between'>
+            <div className='bg-content1 rounded-card border-1 border-divider px-[10px] py-[20px] flex justify-between'>
                 <div className='flex'>
                     <div
                         {...drag}

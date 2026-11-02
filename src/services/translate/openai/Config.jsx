@@ -193,9 +193,8 @@ export function Config(props) {
                     />
                 </div>
                 <Card
-                    isBlurred
-                    className='border-none bg-success/20 dark:bg-success/10'
-                    shadow='sm'
+                    className='border-1 border-divider bg-content1'
+                    shadow='none'
                 >
                     <CardBody>
                         <div>
@@ -240,7 +239,7 @@ export function Config(props) {
                 <h3 className='my-auto'>Prompt List</h3>
                 <p className='text-[10px] text-default-700'>{t('services.translate.openai.prompt_description')}</p>
 
-                <div className='bg-content2 rounded-[10px] p-3'>
+                <div className='bg-content2 rounded-card p-3'>
                     {openaiConfig.promptList &&
                         openaiConfig.promptList.map((prompt, index) => {
                             return (
@@ -337,7 +336,6 @@ export function Config(props) {
                     type='submit'
                     isLoading={isLoading}
                     fullWidth
-                    color='primary'
                 >
                     {t('common.save')}
                 </Button>

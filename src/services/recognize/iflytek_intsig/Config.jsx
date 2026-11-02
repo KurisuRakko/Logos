@@ -141,7 +141,6 @@ export function Config(props) {
                 <Button
                     type='submit'
                     isLoading={isLoading}
-                    color='primary'
                     fullWidth
                 >
                     {t('common.save')}

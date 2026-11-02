@@ -1,0 +1,133 @@
+/* rk-search-field：iOS 式搜索框。灰底圆角输入框 + 放大镜 + 清除键；
+   聚焦或有内容（data-active）时右侧滑出「取消」。外边距与宽度归调用方。 */
+
+.rk-search-field {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.rk-search-field__box {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-neutral-6) 14%, transparent);
+  color: var(--color-neutral-6);
+  cursor: text;
+}
+
+[data-theme='dark'] .rk-search-field__box {
+  background: color-mix(in srgb, var(--color-neutral-6) 20%, transparent);
+}
+
+.rk-search-field__icon {
+  flex: none;
+}
+
+.rk-search-field__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-neutral-9);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.25;
+  appearance: none;
+}
+
+.rk-search-field__input::placeholder {
+  color: var(--color-neutral-6);
+  opacity: 1;
+}
+
+.rk-search-field__input::-webkit-search-cancel-button,
+.rk-search-field__input::-webkit-search-decoration {
+  appearance: none;
+}
+
+.rk-search-field__clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--color-neutral-5);
+  cursor: pointer;
+}
+
+/* 「取消」：布局上只动这一个元素的 max-width（给搜索框让位），
+   文字本身走 translate + opacity：从右侧 24px 处滑到位并淡入，取消时反向。 */
+.rk-search-field__cancel {
+  flex: none;
+  max-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 16px;
+  line-height: 36px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: max-width var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+.rk-search-field__cancel-label {
+  display: block;
+  padding-left: 12px;
+  opacity: 0;
+  translate: 24px 0;
+  transition:
+    translate var(--motion-spring-smooth-duration) var(--motion-spring-smooth),
+    opacity var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-search-field[data-active] .rk-search-field__cancel {
+  max-width: 120px;
+}
+
+.rk-search-field[data-active] .rk-search-field__cancel-label {
+  opacity: 1;
+  translate: none;
+}
+
+.rk-search-field__cancel:active .rk-search-field__cancel-label {
+  opacity: 0.35;
+  transition-duration: 0s;
+}
+
+.rk-search-field__cancel:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-search-field__cancel,
+  .rk-search-field__cancel-label {
+    transition-duration: 1ms;
+  }
+
+  .rk-search-field__cancel-label {
+    translate: none;
+  }
+}

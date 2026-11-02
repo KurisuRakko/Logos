@@ -18,15 +18,11 @@ import { writeText } from '@tauri-apps/api/clipboard';
 import PulseLoader from 'react-spinners/PulseLoader';
 import { TbTransformFilled } from 'react-icons/tb';
 import { HiOutlineVolumeUp } from 'react-icons/hi';
-import { semanticColors } from '@nextui-org/theme';
 import { MdContentCopy } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { GiCycle } from 'react-icons/gi';
-import { useTheme } from 'next-themes';
 import { useAtomValue } from 'jotai';
 import { nanoid } from 'nanoid';
-import { useSpring, animated } from '@react-spring/web';
-import useMeasure from 'react-use-measure';
 
 import { sourceLanguageAtom, targetLanguageAtom } from '../LanguageArea';
 import { useConfig, useVoice } from '../../../../hooks';
@@ -65,7 +61,6 @@ function TargetArea(props) {
     const { t } = useTranslation();
     const textAreaRef = useRef();
     const speak = useVoice();
-    const theme = useTheme();
 
     useEffect(() => {
         if (error) {
@@ -198,20 +193,13 @@ function TargetArea(props) {
         }
     }, [result]);
 
-    // only the height is used, so scroll offsets need not be tracked (they re-render every card while another one animates)
-    const [boundRef, bounds] = useMeasure();
-    const springs = useSpring({
-        from: { height: 0 },
-        to: { height: hide ? 0 : bounds.height },
-    });
-
     return (
         <Card
             shadow='none'
-            className='rounded-[10px]'
+            className='rounded-card border-1 border-divider'
         >
             <CardHeader
-                className={`flex justify-between py-1 px-0 bg-content2 h-[30px] ${hide ? 'rounded-[10px]' : 'rounded-t-[10px]'}`}
+                className={`flex justify-between py-1 px-0 bg-content1 h-[30px] rounded-none ${hide ? '' : 'border-b-1 border-divider'}`}
                 {...drag}
             >
                 {/* current service instance and available service instance to change */}
@@ -271,7 +259,7 @@ function TargetArea(props) {
                     </Dropdown>
                     <PulseLoader
                         loading={isLoading}
-                        color={theme === 'dark' ? semanticColors.dark.default[500] : semanticColors.light.default[500]}
+                        color='var(--color-neutral-5)'
                         size={8}
                         cssOverride={{
                             display: 'inline-block',
@@ -297,14 +285,19 @@ function TargetArea(props) {
                     </Button>
                 </div>
             </CardHeader>
-            <animated.div style={{ ...springs }}>
-                <div ref={boundRef}>
-                    {/* result content */}
-                    <CardBody className={`p-[12px] pb-0 ${hide && 'h-0 p-0'}`}>
+            <div
+                className='logos-collapse'
+                data-open={!hide}
+            >
+                <div>
+                    {/* result content, fades in when it first arrives (streamed chunks do not replay it) */}
+                    <CardBody
+                        className={`p-[12px] pb-0 font-serif ${hide && 'h-0 p-0'} ${result !== '' && 'logos-fade-in'}`}
+                    >
                         {typeof result === 'string' ? (
                             <textarea
                                 ref={textAreaRef}
-                                className='text-[length:var(--app-font-size)] h-0 resize-none bg-transparent select-text outline-none'
+                                className='text-[length:var(--app-font-size)] font-serif h-0 resize-none bg-transparent select-text outline-none'
                                 readOnly
                                 value={result}
                             />
@@ -355,7 +348,7 @@ function TargetArea(props) {
                                                                             {explanations['trait']}
                                                                         </span>
                                                                         <span
-                                                                            className='font-bold text-[length:var(--app-font-size)] select-text'
+                                                                            className='font-semibold text-[length:var(--app-font-size)] select-text'
                                                                         >
                                                                             {explain}
                                                                         </span>
@@ -422,7 +415,7 @@ function TargetArea(props) {
                                 return (
                                     <p
                                         key={v}
-                                        className='text-[length:var(--app-font-size)] text-red-500'
+                                        className='text-[length:var(--app-font-size)] font-sans text-danger'
                                     >
                                         {v}
                                     </p>
@@ -433,7 +426,7 @@ function TargetArea(props) {
                         )}
                     </CardBody>
                     <CardFooter
-                        className={`bg-content1 rounded-none rounded-b-[10px] flex px-[12px] p-[5px] ${hide && 'hidden'}`}
+                        className={`bg-content1 rounded-none flex px-[12px] p-[5px] ${hide && 'hidden'}`}
                     >
                         <ButtonGroup>
                             {/* copy button */}
@@ -534,7 +527,7 @@ function TargetArea(props) {
                         </ButtonGroup>
                     </CardFooter>
                 </div>
-            </animated.div>
+            </div>
         </Card>
     );
 }

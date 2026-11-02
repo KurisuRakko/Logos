@@ -1,0 +1,54 @@
+/* rk-bottom-toolbar：iOS 式底部工具栏。材质取 glass.css 的 data-glass="chrome"，常显、不加 data-reveal；
+   chrome 自带的发丝线在下沿，底栏翻到上沿（与 BottomNav 同一写法，glass.md 允许改 box-shadow）。
+   --rk-bottom-toolbar-max-width：内容列宽；栏内容区比它宽 16px（两侧各 8px，按钮命中区外扩），与 NavigationBar 对齐。 */
+
+:root {
+  /* 页面底部要给工具栏留的空间（含底部安全区）；Snackbar 也按它抬高 */
+  --rk-bottom-toolbar-space: calc(49px + env(safe-area-inset-bottom));
+}
+
+.rk-bottom-toolbar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: var(--layer-chrome);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+[data-glass='chrome'].rk-bottom-toolbar {
+  box-shadow: 0 -1px 0 var(--color-border);
+}
+
+.rk-bottom-toolbar__inner {
+  /* 三格换内容时旧内容的克隆绝对定位在这里（useSlotCrossfade） */
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  height: 49px;
+  max-width: calc(var(--rk-bottom-toolbar-max-width, 100vw) + 16px);
+  margin: 0 auto;
+  padding: 0 8px;
+}
+
+.rk-bottom-toolbar__start,
+.rk-bottom-toolbar__end {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.rk-bottom-toolbar__end {
+  justify-content: flex-end;
+}
+
+.rk-bottom-toolbar__center {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: var(--text-label-12);
+  line-height: var(--text-label-12--line-height);
+  color: var(--color-neutral-8);
+}

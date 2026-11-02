@@ -1,0 +1,155 @@
+/* rk-sheet：底部抽屉，视觉移植 showcase snippets/Sheet.tsx 的内联样式。
+   backdrop 随下滑进度变淡；popup 位移跟随 --drawer-swipe-movement-y（Base UI 滑动变量）。 */
+
+.rk-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-overlay);
+  background: rgb(0 0 0 / var(--glass-scrim-opacity));
+  opacity: calc(1 - var(--drawer-swipe-progress, 0));
+  transition:
+    opacity var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+.rk-sheet__backdrop[data-starting-style],
+.rk-sheet__backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+/* 退场时长与面板一样按 --drawer-swipe-strength 缩放（Base UI 在 backdrop 上恒写 1，留作对齐） */
+.rk-sheet__backdrop[data-ending-style] {
+  transition-duration: calc(var(--motion-duration-exit) * var(--drawer-swipe-strength, 1));
+}
+
+/* 下滑跟手时 backdrop 不做过渡（进度变量实时驱动）。 */
+.rk-sheet__backdrop[data-swiping] {
+  transition: none;
+}
+
+/* 上沿贴 iOS 可见区、底边贴键盘上沿（viewport.ts 写变量），75% 最大高度随之按可见区算；
+   未安装追踪时回退为 inset: 0。键盘升降时上下沿走 smooth 弹簧。 */
+.rk-sheet__viewport {
+  position: fixed;
+  inset: var(--rk-visual-top, 0px) 0 var(--rk-keyboard-inset, 0px);
+  z-index: var(--layer-overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  transition:
+    top var(--motion-spring-smooth-duration) var(--motion-spring-smooth),
+    bottom var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+.rk-sheet__viewport > * {
+  pointer-events: auto;
+}
+
+.rk-sheet {
+  width: 100%;
+  max-height: 75%;
+  padding: 12px 24px calc(32px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-width: 1px 0 0;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--glass-highlight), 0 -4px 24px rgba(0, 0, 0, 0.05);
+  translate: 0 var(--drawer-swipe-movement-y, 0px);
+  transition: translate var(--motion-spring-smooth-duration) var(--motion-spring-smooth);
+}
+
+.rk-sheet[data-starting-style],
+.rk-sheet[data-ending-style] {
+  translate: 0 100%;
+}
+
+/* 键盘在时底部 Home 横条被键盘盖住，不再留 safe-area 内边距。 */
+:root[data-rk-keyboard] .rk-sheet {
+  padding-bottom: 32px;
+}
+
+/* 进场 smooth 弹簧升起、退场 snappy 弹簧沉下（移植自 RakkoNotes motion-overrides.css）。
+   跟手拖动时下面的 data-swiping 关掉过渡，松手回弹 / 下滑关闭从手指所在处接着走。
+   下滑关闭时 Base UI 按松手速度算出 --drawer-swipe-strength（0.1–1，甩得越快越小），
+   用它缩短收起时长，让收尾接得上手势速度。 */
+.rk-sheet[data-ending-style] {
+  transition: translate calc(var(--motion-spring-snappy-duration) * var(--drawer-swipe-strength, 1))
+    var(--motion-spring-snappy);
+}
+
+/* 跟手滑动时不做过渡。 */
+.rk-sheet[data-swiping] {
+  transition: none;
+}
+
+.rk-sheet__content {
+  min-width: 0;
+}
+
+.rk-sheet__handle {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+  background: var(--color-neutral-4);
+}
+
+.rk-sheet__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-neutral-10);
+}
+
+.rk-sheet__description {
+  margin: 0 0 16px;
+  color: var(--color-neutral-7);
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------- 右侧抽屉
+   Root 传 swipeDirection="right" 时：贴右、全高、从右向左滑入，右滑关闭。
+   viewport 本身没有方向属性，用 :has() 看子 popup 的 data-swipe-direction。 */
+
+.rk-sheet__viewport:has(> .rk-sheet[data-swipe-direction='right']) {
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.rk-sheet[data-swipe-direction='right'] {
+  width: min(440px, 100vw);
+  max-height: none;
+  height: 100%;
+  padding: calc(20px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+  border-width: 0 0 0 1px;
+  border-radius: 16px 0 0 16px;
+  box-shadow: inset 1px 0 0 var(--glass-highlight), -4px 0 24px rgba(0, 0, 0, 0.05);
+  translate: var(--drawer-swipe-movement-x, 0px) 0;
+}
+
+.rk-sheet[data-swipe-direction='right'][data-starting-style],
+.rk-sheet[data-swipe-direction='right'][data-ending-style] {
+  translate: 100% 0;
+}
+
+:root[data-rk-keyboard] .rk-sheet[data-swipe-direction='right'] {
+  padding-bottom: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-sheet__backdrop,
+  .rk-sheet,
+  .rk-sheet[data-starting-style],
+  .rk-sheet[data-ending-style],
+  .rk-sheet[data-swipe-direction='right'],
+  .rk-sheet[data-swipe-direction='right'][data-starting-style],
+  .rk-sheet[data-swipe-direction='right'][data-ending-style] {
+    transition: none;
+    translate: none;
+  }
+
+  .rk-sheet__viewport {
+    transition: none;
+  }
+}
