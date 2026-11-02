@@ -64,5 +64,4 @@ export async function recognize(base64, language, options = {}) {
     }
 }
 
-export * from './Config';
 export * from './info';

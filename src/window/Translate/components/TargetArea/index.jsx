@@ -39,7 +39,7 @@ import { WINDOW_HIDE_EVENT } from '../../../../utils/window';
 
 let translateID = [];
 
-export default function TargetArea(props) {
+function TargetArea(props) {
     const { index, name, translateServiceInstanceList, serviceInstanceConfigMap, ...drag } = props;
 
     const [currentTranslateServiceInstanceKey, setCurrentTranslateServiceInstanceKey] = useState(name);
@@ -48,7 +48,6 @@ export default function TargetArea(props) {
         return getDisplayInstanceName(instanceConfig[INSTANCE_NAME_CONFIG_KEY], serviceNameSupplier);
     }
 
-    const [appFontSize] = useConfig('app_font_size', 16);
     const [translateSecondLanguage] = useConfig('translate_second_language', 'en');
     const [isLoading, setIsLoading] = useState(false);
     const [hide, setHide] = useState(true);
@@ -199,7 +198,8 @@ export default function TargetArea(props) {
         }
     }, [result]);
 
-    const [boundRef, bounds] = useMeasure({ scroll: true });
+    // only the height is used, so scroll offsets need not be tracked (they re-render every card while another one animates)
+    const [boundRef, bounds] = useMeasure();
     const springs = useSpring({
         from: { height: 0 },
         to: { height: hide ? 0 : bounds.height },
@@ -304,33 +304,33 @@ export default function TargetArea(props) {
                         {typeof result === 'string' ? (
                             <textarea
                                 ref={textAreaRef}
-                                className={`text-[${appFontSize}px] h-0 resize-none bg-transparent select-text outline-none`}
+                                className='text-[length:var(--app-font-size)] h-0 resize-none bg-transparent select-text outline-none'
                                 readOnly
                                 value={result}
                             />
                         ) : (
                             <div>
                                 {result['pronunciations'] &&
-                                    result['pronunciations'].map((pronunciation) => {
+                                    result['pronunciations'].map((pronunciation, pronunciationIndex) => {
                                         return (
-                                            <div key={nanoid()}>
+                                            <div key={pronunciationIndex}>
                                                 {pronunciation['region'] && (
                                                     <span
-                                                        className={`text-[${appFontSize}px] mr-[12px] text-default-500`}
+                                                        className='text-[length:var(--app-font-size)] mr-[12px] text-default-500'
                                                     >
                                                         {pronunciation['region']}
                                                     </span>
                                                 )}
                                                 {pronunciation['symbol'] && (
                                                     <span
-                                                        className={`text-[${appFontSize}px] mr-[12px] text-default-500`}
+                                                        className='text-[length:var(--app-font-size)] mr-[12px] text-default-500'
                                                     >
                                                         {pronunciation['symbol']}
                                                     </span>
                                                 )}
                                                 {pronunciation['voice'] && pronunciation['voice'] !== '' && (
                                                     <HiOutlineVolumeUp
-                                                        className={`text-[${appFontSize}px] inline-block my-auto cursor-pointer`}
+                                                        className='text-[length:var(--app-font-size)] inline-block my-auto cursor-pointer'
                                                         onClick={() => {
                                                             speak(pronunciation['voice']);
                                                         }}
@@ -340,22 +340,22 @@ export default function TargetArea(props) {
                                         );
                                     })}
                                 {result['explanations'] &&
-                                    result['explanations'].map((explanations) => {
+                                    result['explanations'].map((explanations, explanationIndex) => {
                                         return (
-                                            <div key={nanoid()}>
+                                            <div key={explanationIndex}>
                                                 {explanations['explains'] &&
                                                     explanations['explains'].map((explain, index) => {
                                                         return (
-                                                            <span key={nanoid()}>
+                                                            <span key={index}>
                                                                 {index === 0 ? (
                                                                     <>
                                                                         <span
-                                                                            className={`text-[${appFontSize - 2}px] text-default-500 mr-[12px]`}
+                                                                            className='text-[length:calc(var(--app-font-size)_-_2px)] text-default-500 mr-[12px]'
                                                                         >
                                                                             {explanations['trait']}
                                                                         </span>
                                                                         <span
-                                                                            className={`font-bold text-[${appFontSize}px] select-text`}
+                                                                            className='font-bold text-[length:var(--app-font-size)] select-text'
                                                                         >
                                                                             {explain}
                                                                         </span>
@@ -363,8 +363,7 @@ export default function TargetArea(props) {
                                                                     </>
                                                                 ) : (
                                                                     <span
-                                                                        className={`text-[${appFontSize - 2}px] text-default-500 select-text mr-1`}
-                                                                        key={nanoid()}
+                                                                        className='text-[length:calc(var(--app-font-size)_-_2px)] text-default-500 select-text mr-1'
                                                                     >
                                                                         {explain}
                                                                     </span>
@@ -377,10 +376,10 @@ export default function TargetArea(props) {
                                     })}
                                 <br />
                                 {result['associations'] &&
-                                    result['associations'].map((association) => {
+                                    result['associations'].map((association, associationIndex) => {
                                         return (
-                                            <div key={nanoid()}>
-                                                <span className={`text-[${appFontSize}px] text-default-500`}>
+                                            <div key={associationIndex}>
+                                                <span className='text-[length:var(--app-font-size)] text-default-500'>
                                                     {association}
                                                 </span>
                                             </div>
@@ -389,14 +388,14 @@ export default function TargetArea(props) {
                                 {result['sentence'] &&
                                     result['sentence'].map((sentence, index) => {
                                         return (
-                                            <div key={nanoid()}>
-                                                <span className={`text-[${appFontSize - 2}px] mr-[12px]`}>
+                                            <div key={index}>
+                                                <span className='text-[length:calc(var(--app-font-size)_-_2px)] mr-[12px]'>
                                                     {index + 1}.
                                                 </span>
                                                 <>
                                                     {sentence['source'] && (
                                                         <span
-                                                            className={`text-[${appFontSize}px] select-text`}
+                                                            className='text-[length:var(--app-font-size)] select-text'
                                                             dangerouslySetInnerHTML={{
                                                                 __html: sentence['source'],
                                                             }}
@@ -406,7 +405,7 @@ export default function TargetArea(props) {
                                                 <>
                                                     {sentence['target'] && (
                                                         <div
-                                                            className={`text-[${appFontSize}px] select-text text-default-500`}
+                                                            className='text-[length:var(--app-font-size)] select-text text-default-500'
                                                             dangerouslySetInnerHTML={{
                                                                 __html: sentence['target'],
                                                             }}
@@ -423,7 +422,7 @@ export default function TargetArea(props) {
                                 return (
                                     <p
                                         key={v}
-                                        className={`text-[${appFontSize}px] text-red-500`}
+                                        className='text-[length:var(--app-font-size)] text-red-500'
                                     >
                                         {v}
                                     </p>
@@ -539,3 +538,6 @@ export default function TargetArea(props) {
         </Card>
     );
 }
+
+// cards only re-render for their own result or when the shared props actually change
+export default React.memo(TargetArea);

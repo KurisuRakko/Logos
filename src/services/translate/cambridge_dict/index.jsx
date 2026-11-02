@@ -96,5 +96,4 @@ export async function translate(text, from, to) {
     return resultMap.result;
 }
 
-export * from './Config';
 export * from './info';

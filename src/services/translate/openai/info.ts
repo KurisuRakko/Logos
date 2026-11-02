@@ -3,6 +3,13 @@ export const info = {
     icon: 'logo/openai.svg',
 };
 
+export const defaultRequestArguments = JSON.stringify({
+    temperature: 0.1,
+    top_p: 0.99,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+});
+
 export enum Language {
     auto = 'Auto',
     zh_cn = 'Simplified Chinese',

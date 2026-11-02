@@ -99,5 +99,4 @@ function truncate(q) {
     return q.substring(0, 10) + len + q.substring(len - 10, len);
 }
 
-export * from './Config';
 export * from './info';

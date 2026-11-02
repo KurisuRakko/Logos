@@ -30,5 +30,4 @@ export async function translate(text, from, to) {
     }
 }
 
-export * from './Config';
 export * from './info';

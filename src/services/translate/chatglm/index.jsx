@@ -98,5 +98,4 @@ export async function translate(text, from, to, options = {}) {
     return result;
 }
 
-export * from './Config';
 export * from './info';

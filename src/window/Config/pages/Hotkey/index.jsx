@@ -108,6 +108,13 @@ function buildHotkey(e) {
     return `${newValue}${newValue.length > 0 && code.length > 0 ? '+' : ''}${code}`;
 }
 
+function unregisterHotkey(key) {
+    if (!key) {
+        return Promise.resolve();
+    }
+    return isRegistered(key).then((registered) => registered && unregister(key));
+}
+
 function HotkeyItem({ name, label, registerHandler, t }) {
     const [value, setValue] = useConfig(name, '');
     const [draft, setDraft] = useState('');
@@ -123,6 +130,7 @@ function HotkeyItem({ name, label, registerHandler, t }) {
     function keyDown(e) {
         e.preventDefault();
         if (e.keyCode === 8) {
+            unregisterHotkey(value);
             setDraft('');
             setValue('');
             return;
@@ -130,8 +138,11 @@ function HotkeyItem({ name, label, registerHandler, t }) {
         const nextValue = buildHotkey(e);
         // Modifier-only input is only a hint; it must never be persisted.
         setDraft(nextValue);
-        if (containsNonModifierKey(nextValue)) {
-            setValue(nextValue);
+        if (containsNonModifierKey(nextValue) && nextValue !== value) {
+            // the new hotkey takes effect once the user confirms it with OK
+            unregisterHotkey(value).finally(() => {
+                setValue(nextValue);
+            });
         }
     }
 
@@ -145,10 +156,9 @@ function HotkeyItem({ name, label, registerHandler, t }) {
                 label={t('config.hotkey.set_hotkey')}
                 className='max-w-[50%]'
                 onKeyDown={keyDown}
-                onFocus={() => {
-                    unregister(value);
-                    setValue('');
-                    setDraft('');
+                onBlur={() => {
+                    // drop an unfinished (modifier-only) input
+                    setDraft(value);
                 }}
                 endContent={
                     <Button

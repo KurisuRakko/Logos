@@ -89,6 +89,7 @@ export default function App() {
         }
         if (appFontSize !== null) {
             document.documentElement.style.fontSize = `${appFontSize}px`;
+            document.documentElement.style.setProperty('--app-font-size', `${appFontSize}px`);
         }
     }, [appFont, appFallbackFont, appFontSize]);
 

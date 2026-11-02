@@ -1,6 +1,5 @@
 import { fetch, Body } from '@tauri-apps/api/http';
-import { Language } from './info';
-import { defaultRequestArguments } from './Config';
+import { Language, defaultRequestArguments } from './info';
 
 export async function translate(text, from, to, options) {
     const { config, setResult, detect } = options;
@@ -148,5 +147,4 @@ export async function translate(text, from, to, options) {
     }
 }
 
-export * from './Config';
 export * from './info';

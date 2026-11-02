@@ -37,7 +37,6 @@ export const detectLanguageAtom = atom('');
 
 export default function SourceArea(props) {
     const { serviceInstanceConfigMap } = props;
-    const [appFontSize] = useConfig('app_font_size', 16);
     const [sourceText, setSourceText, syncSourceText] = useSyncAtom(sourceTextAtom);
     const setSourceTextAtom = useSetAtom(sourceTextAtom);
     const [detectLanguage, setDetectLanguage] = useAtom(detectLanguageAtom);
@@ -373,7 +372,7 @@ export default function SourceArea(props) {
     const recognizeLanguageList = recognizeService ? Object.keys(recognizeService.Language) : [];
 
     return (
-        <div className={hideSource && windowType !== '[INPUT_TRANSLATE]' && 'hidden'}>
+        <div className={hideSource && windowType !== '[INPUT_TRANSLATE]' ? 'hidden' : ''}>
             <Card
                 shadow='none'
                 className='bg-content1 rounded-[10px] mt-[1px] pb-0'
@@ -465,14 +464,14 @@ export default function SourceArea(props) {
                         </div>
                     )}
                     {isImage && !recognizing && recognizeError !== '' && (
-                        <div className={`text-[${appFontSize}px] text-danger pb-[12px] select-text whitespace-pre-wrap`}>
+                        <div className='text-[length:var(--app-font-size)] text-danger pb-[12px] select-text whitespace-pre-wrap'>
                             {recognizeError}
                         </div>
                     )}
                     <textarea
                         autoFocus
                         ref={textAreaRef}
-                        className={`text-[${appFontSize}px] bg-content1 h-full resize-none outline-none ${
+                        className={`text-[length:var(--app-font-size)] bg-content1 h-full resize-none outline-none ${
                             isImage && (recognizing || recognizeError !== '') ? 'hidden' : ''
                         }`}
                         value={sourceText}

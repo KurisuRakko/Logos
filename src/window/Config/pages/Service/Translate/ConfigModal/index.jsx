@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import React from 'react';
 
 import * as builtinServices from '../../../../../../services/translate';
+import * as serviceConfigs from '../../../../../../services/translate/config';
 import { getServiceName } from '../../../../../../utils/service_instance';
 
 export default function ConfigModal(props) {
@@ -11,7 +12,7 @@ export default function ConfigModal(props) {
     const serviceName = getServiceName(serviceInstanceKey);
 
     const { t } = useTranslation();
-    const ConfigComponent = builtinServices[serviceName].Config;
+    const ConfigComponent = serviceConfigs[serviceName];
 
     return (
         <Modal

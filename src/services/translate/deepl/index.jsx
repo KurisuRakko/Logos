@@ -145,5 +145,4 @@ function getRandomNumber() {
     return rand * 1000;
 }
 
-export * from './Config';
 export * from './info';

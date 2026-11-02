@@ -109,5 +109,4 @@ export function iflytek_auth(api_key, api_secret, host, date, request_line) {
     return authorization;
 }
 
-export * from './Config';
 export * from './info';

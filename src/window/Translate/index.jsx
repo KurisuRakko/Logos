@@ -2,7 +2,7 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { appWindow, currentMonitor } from '@tauri-apps/api/window';
 import { Spacer, Button } from '@nextui-org/react';
 import { AiFillCloseCircle } from 'react-icons/ai';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { BsPinFill } from 'react-icons/bs';
 
@@ -11,7 +11,7 @@ import SourceArea from './components/SourceArea';
 import TargetArea from './components/TargetArea';
 import { osType } from '../../utils/env';
 import { useConfig, useServiceInstanceList } from '../../hooks';
-import { store } from '../../utils/store';
+import { store, getSnapshot } from '../../utils/store';
 import { dismissWindow, WINDOW_HIDE_EVENT } from '../../utils/window';
 import { info } from 'tauri-plugin-log-api';
 
@@ -74,6 +74,19 @@ void listen('tauri://move', () => {
 
 const eventKeyOf = (key) => key.replaceAll('.', '_').replaceAll('@', ':');
 
+const loadServiceInstanceConfigMap = (serviceInstanceKeyList) => {
+    const config = {};
+    for (const serviceInstanceKey of serviceInstanceKeyList) {
+        config[serviceInstanceKey] = getSnapshot(serviceInstanceKey) ?? {};
+    }
+    return config;
+};
+
+const isSameConfigMap = (a, b) => {
+    const keys = Object.keys(b);
+    return keys.length === Object.keys(a).length && keys.every((key) => a[key] === b[key]);
+};
+
 export default function Translate() {
     const [closeOnBlur] = useConfig('translate_close_on_blur', true);
     const [alwaysOnTop] = useConfig('translate_always_on_top', false);
@@ -86,7 +99,9 @@ export default function Translate() {
     const [recognizeServiceInstanceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [hideLanguage] = useConfig('hide_language', false);
     const [pined, setPined] = useState(false);
-    const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(null);
+    const [serviceInstanceConfigMap, setServiceInstanceConfigMap] = useState(() =>
+        loadServiceInstanceConfigMap([...translateServiceInstanceList, ...recognizeServiceInstanceList])
+    );
     const reorder = (list, startIndex, endIndex) => {
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
@@ -94,11 +109,14 @@ export default function Translate() {
         return result;
     };
 
-    const onDragEnd = async (result) => {
-        if (!result.destination) return;
-        const items = reorder(translateServiceInstanceList, result.source.index, result.destination.index);
-        setTranslateServiceInstanceList(items);
-    };
+    const onDragEnd = useCallback(
+        (result) => {
+            if (!result.destination) return;
+            const items = reorder(translateServiceInstanceList, result.source.index, result.destination.index);
+            setTranslateServiceInstanceList(items);
+        },
+        [translateServiceInstanceList]
+    );
     // 失焦是否自动隐藏窗口（置顶时不隐藏）
     useEffect(() => {
         if (closeOnBlur === null) return;
@@ -182,19 +200,14 @@ export default function Translate() {
         }
     }, [rememberWindowSize]);
 
-    const loadServiceInstanceConfigMap = async () => {
-        const config = {};
-        for (const serviceInstanceKey of translateServiceInstanceList) {
-            config[serviceInstanceKey] = (await store.get(serviceInstanceKey)) ?? {};
-        }
-        for (const serviceInstanceKey of recognizeServiceInstanceList) {
-            config[serviceInstanceKey] = (await store.get(serviceInstanceKey)) ?? {};
-        }
-        setServiceInstanceConfigMap({ ...config });
-    };
     useEffect(() => {
         if (translateServiceInstanceList !== null && recognizeServiceInstanceList !== null) {
-            loadServiceInstanceConfigMap();
+            const config = loadServiceInstanceConfigMap([
+                ...translateServiceInstanceList,
+                ...recognizeServiceInstanceList,
+            ]);
+            // keep the same object when nothing changed, so the result cards are not re-rendered on mount
+            setServiceInstanceConfigMap((old) => (isSameConfigMap(old, config) ? old : config));
             // the window is kept alive, so pick up service config edits made in the config window
             const unlistenList = [...translateServiceInstanceList, ...recognizeServiceInstanceList].map((key) =>
                 listen(`${eventKeyOf(key)}_changed`, (e) => {
@@ -252,9 +265,7 @@ export default function Translate() {
             <div className={`${osType === 'Linux' ? 'h-[calc(100vh-37px)]' : 'h-[calc(100vh-35px)]'} px-[8px]`}>
                 <div className='h-full overflow-y-auto'>
                     <div>
-                        {serviceInstanceConfigMap !== null && (
-                            <SourceArea serviceInstanceConfigMap={serviceInstanceConfigMap} />
-                        )}
+                        <SourceArea serviceInstanceConfigMap={serviceInstanceConfigMap} />
                     </div>
                     <div className={`${hideLanguage && 'hidden'}`}>
                         <LanguageArea />
@@ -271,7 +282,6 @@ export default function Translate() {
                                     {...provided.droppableProps}
                                 >
                                     {translateServiceInstanceList !== null &&
-                                        serviceInstanceConfigMap !== null &&
                                         translateServiceInstanceList.map((serviceInstanceKey, index) => {
                                             const config = serviceInstanceConfigMap[serviceInstanceKey] ?? {};
                                             const enable = config['enable'] ?? true;

@@ -14,5 +14,4 @@ export async function translate(text, _from, _to) {
     }
 }
 
-export * from './Config';
 export * from './info';

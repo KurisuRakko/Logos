@@ -100,5 +100,4 @@ export async function recognize(_, lang) {
     }
 }
 
-export * from './Config';
 export * from './info';

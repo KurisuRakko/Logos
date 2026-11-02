@@ -5,6 +5,7 @@ import React from 'react';
 
 import { getServiceName } from '../../../../../../utils/service_instance';
 import * as builtinServices from '../../../../../../services/recognize';
+import * as serviceConfigs from '../../../../../../services/recognize/config';
 import { osType } from '../../../../../../utils/env';
 
 export default function ConfigModal(props) {
@@ -13,7 +14,7 @@ export default function ConfigModal(props) {
     const serviceName = getServiceName(serviceInstanceKey);
 
     const { t } = useTranslation();
-    const ConfigComponent = builtinServices[serviceName].Config;
+    const ConfigComponent = serviceConfigs[serviceName];
 
     return (
         <Modal

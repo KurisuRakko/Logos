@@ -139,5 +139,4 @@ async function query(img_base64, action, serviceVersion, appid, secret) {
     return res;
 }
 
-export * from './Config';
 export * from './info';

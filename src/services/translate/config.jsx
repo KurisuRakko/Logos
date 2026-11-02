@@ -1,0 +1,22 @@
+// Config UIs live apart from the service logic so only the config window bundles them
+export { Config as deepl } from './deepl/Config';
+export { Config as bing } from './bing/Config';
+export { Config as yandex } from './yandex/Config';
+export { Config as openai } from './openai/Config';
+export { Config as google } from './google/Config';
+export { Config as transmart } from './transmart/Config';
+export { Config as alibaba } from './alibaba/Config';
+export { Config as baidu } from './baidu/Config';
+export { Config as baidu_field } from './baidu_field/Config';
+export { Config as tencent } from './tencent/Config';
+export { Config as volcengine } from './volcengine/Config';
+export { Config as niutrans } from './niutrans/Config';
+export { Config as youdao } from './youdao/Config';
+export { Config as bing_dict } from './bing_dict/Config';
+export { Config as cambridge_dict } from './cambridge_dict/Config';
+export { Config as caiyun } from './caiyun/Config';
+export { Config as chatglm } from './chatglm/Config';
+export { Config as geminipro } from './geminipro/Config';
+export { Config as ollama } from './ollama/Config';
+export { Config as ecdict } from './ecdict/Config';
+export { Config as lingva } from './lingva/Config';

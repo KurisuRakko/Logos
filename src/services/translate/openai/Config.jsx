@@ -12,15 +12,8 @@ import React, { useState } from 'react';
 import { useConfig } from '../../../hooks/useConfig';
 import { useToastStyle } from '../../../hooks';
 import { translate } from './index';
-import { Language } from './index';
+import { Language, defaultRequestArguments } from './info';
 import { INSTANCE_NAME_CONFIG_KEY } from '../../../utils/service_instance';
-
-export const defaultRequestArguments = JSON.stringify({
-    temperature: 0.1,
-    top_p: 0.99,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-});
 
 export function Config(props) {
     const { instanceKey, updateServiceList, onClose } = props;
