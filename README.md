@@ -1,6 +1,6 @@
-# pot-lite
+# Logos
 
-pot-lite 是 [pot-desktop](https://github.com/pot-app/pot-desktop) 的精简分支，仅面向 Windows x64，保留划词翻译、输入翻译与截图文字识别等核心功能，目标是降低弹窗延迟、识别耗时、常驻资源占用与开机启动开销。
+Logos（原名 pot-lite）分叉自 [pot-app/pot-desktop](https://github.com/pot-app/pot-desktop)，为其精简分支，仅面向 Windows x64，保留划词翻译、输入翻译与截图翻译等核心功能，目标是降低弹窗延迟、识别耗时、常驻资源占用与开机启动开销。
 
 本项目基于 pot-desktop 3.0.7 修改，与上游不再同步。原作者与贡献者信息见上游仓库。
 
@@ -24,7 +24,8 @@ pot-lite 是 [pot-desktop](https://github.com/pot-app/pot-desktop) 的精简分�
 
 ### 性能相关改动
 
-- 翻译、截图、识别窗口改为常驻隐藏复用，不再每次重新创建 WebView。
+- 独立的文字识别窗口已并入截图翻译：截图后识别出的文字进入翻译窗口的原文框，可直接校对、切换识别语言并重新识别，亦可展开截图缩略图对照原图。
+- 翻译与截图窗口改为常驻隐藏复用，不再每次重新创建 WebView。
 - 截图在内存中裁剪，Windows 系统文字识别直接读取内存位图，识别引擎按语言缓存。
 - 本地语言检测由 lingua 改为 whatlang，不再内置语言模型。
 - 启动阶段不再执行更新检查与服务预热；前端按窗口拆分并按需加载。
@@ -34,9 +35,11 @@ pot-lite 是 [pot-desktop](https://github.com/pot-app/pot-desktop) 的精简分�
 
 ## 安装
 
-在 [Releases](https://github.com/KurisuRakko/pot-lite/releases) 下载 `pot-lite_*_x64-setup.exe`。
+在 [Releases](https://github.com/KurisuRakko/Logos/releases) 下载 `Logos_*_x64-setup.exe`。
 
 本程序与原版 pot 使用相同的应用标识，以沿用原有设置与服务密钥。安装前须先卸载原版 pot，两者不可同时安装。
+
+从 pot-lite 升级时，请先在系统设置的「应用」中卸载 pot-lite，再安装 Logos。由于应用标识未变，原有设置将予以保留。
 
 ## 构建
 

@@ -7,7 +7,7 @@
         "withGlobalTauri": false
     },
     "package": {
-        "productName": "pot-lite",
+        "productName": "Logos",
         "version": "3.0.7"
     },
     "tauri": {
@@ -62,7 +62,7 @@
             "targets": ["nsis"],
             "identifier": "com.pot-app.desktop",
             "longDescription": "A cross-platform text translation and ocr software",
-            "shortDescription": "Pot App",
+            "shortDescription": "Logos",
             "externalBin": [],
             "resources": [],
             "icon": [
