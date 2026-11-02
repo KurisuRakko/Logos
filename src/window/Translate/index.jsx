@@ -149,17 +149,19 @@ export default function Translate() {
         };
     }, [alwaysOnTop]);
     // 窗口出现动画：每次从隐藏状态被唤起时重播，隐藏时复位
+    // 隐藏前先把内容设为透明：后端是先 show() 再发事件，中间那一帧显示的是窗口隐藏时的最后画面
     useEffect(() => {
         const root = rootRef.current;
         let hidden = false;
         const play = () => {
-            root.classList.remove('logos-window-enter');
+            root.classList.remove('logos-window-enter', 'logos-window-hidden');
             void root.offsetWidth;
             root.classList.add('logos-window-enter');
         };
         const onHide = () => {
             hidden = true;
             root.classList.remove('logos-window-enter');
+            root.classList.add('logos-window-hidden');
         };
         const onShow = () => {
             if (hidden) {

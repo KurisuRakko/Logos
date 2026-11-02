@@ -35,16 +35,15 @@ html {
     background: var(--color-neutral-5);
 }
 
-/* the translate window is reused: replayed on every activation, plain opacity so input is never blocked */
-@keyframes logos-window-enter {
+/*
+ * Motion follows Rakko Design (design-system/references/motion.md): spatial movement (translate, scale)
+ * uses the spring tokens, opacity and color use --motion-ease-standard. Longhands are used on purpose:
+ * a webview without CSS linear() then only loses the spring curve, not the whole animation.
+ */
+@keyframes logos-rise {
     from {
-        opacity: 0;
-        transform: scale(0.98);
+        translate: 0 6px;
     }
-}
-
-.logos-window-enter {
-    animation: logos-window-enter var(--motion-duration-state) var(--motion-ease-standard);
 }
 
 @keyframes logos-fade-in {
@@ -53,15 +52,53 @@ html {
     }
 }
 
+@keyframes logos-pop {
+    from {
+        scale: 0.96;
+    }
+}
+
+/* content rises in: smooth spring for the movement, a short standard fade for the opacity;
+   --logos-enter-index staggers siblings by 35ms */
+.logos-enter {
+    animation-name: logos-rise, logos-fade-in;
+    animation-duration: var(--motion-spring-smooth-duration), var(--motion-duration-enter);
+    animation-timing-function: var(--motion-spring-smooth), var(--motion-ease-standard);
+    animation-delay: calc(var(--logos-enter-index, 0) * 35ms);
+    animation-fill-mode: both;
+}
+
 .logos-fade-in {
     animation: logos-fade-in var(--motion-duration-enter) var(--motion-ease-standard);
 }
 
-/* height of a collapsible block follows its content without measuring it */
+/* the translate window is reused and replays this on every activation; only its content moves,
+   scaling the opaque background would uncover the transparent window edge */
+.logos-window-enter > * {
+    animation-name: logos-rise, logos-fade-in;
+    animation-duration: var(--motion-spring-smooth-duration), var(--motion-duration-enter);
+    animation-timing-function: var(--motion-spring-smooth), var(--motion-ease-standard);
+}
+
+/* set right before the window hides, so the frame shown on the next activation is empty */
+.logos-window-hidden > * {
+    opacity: 0;
+}
+
+/* settings page switch: critically damped page spring, no overshoot */
+.logos-page-enter {
+    animation-name: logos-rise, logos-fade-in;
+    animation-duration: var(--motion-spring-page-duration), var(--motion-duration-enter);
+    animation-timing-function: var(--motion-spring-page), var(--motion-ease-standard);
+}
+
+/* height of a collapsible block follows its content without measuring it; the page spring has no
+   overshoot, so the card never grows past its content. Collapsed content leaves the tab order once
+   the motion has finished (visibility switches without a transition when opening) */
 .logos-collapse {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows var(--motion-duration-enter) var(--motion-ease-standard);
+    transition: grid-template-rows var(--motion-spring-page-duration) var(--motion-spring-page);
 }
 
 .logos-collapse[data-open='true'] {
@@ -71,20 +108,166 @@ html {
 .logos-collapse > * {
     min-height: 0;
     overflow: hidden;
+    transition: visibility 0s;
 }
 
-/* NextUI overlays skip their framer-motion animations (main.jsx); a short fade keeps them from popping */
-section[role='dialog'][aria-modal='true'],
+.logos-collapse[data-open='false'] > * {
+    visibility: hidden;
+    transition-delay: var(--motion-spring-page-duration);
+}
+
+/*
+ * NextUI overlays skip their framer-motion animations (main.jsx), so they enter here instead:
+ * scale 0.96 -> 1 from the side facing the trigger (snappy spring) plus a standard fade.
+ * They close without an exit animation, framer-motion unmounts them at once.
+ */
 [data-slot='content'][data-open='true'],
-[role='tooltip'] {
-    animation: logos-fade-in var(--motion-duration-state) var(--motion-ease-standard);
+section[role='dialog'][aria-modal='true'] {
+    animation-name: logos-pop, logos-fade-in;
+    animation-duration: var(--motion-spring-snappy-duration), var(--motion-duration-state);
+    animation-timing-function: var(--motion-spring-snappy), var(--motion-ease-standard);
 }
 
+[data-slot='content'][data-placement='top'] {
+    transform-origin: 50% 100%;
+}
+[data-slot='content'][data-placement='top-start'] {
+    transform-origin: 0 100%;
+}
+[data-slot='content'][data-placement='top-end'] {
+    transform-origin: 100% 100%;
+}
+[data-slot='content'][data-placement='bottom'] {
+    transform-origin: 50% 0;
+}
+[data-slot='content'][data-placement='bottom-start'] {
+    transform-origin: 0 0;
+}
+[data-slot='content'][data-placement='bottom-end'] {
+    transform-origin: 100% 0;
+}
+[data-slot='content'][data-placement='left'] {
+    transform-origin: 100% 50%;
+}
+[data-slot='content'][data-placement='left-start'] {
+    transform-origin: 100% 0;
+}
+[data-slot='content'][data-placement='left-end'] {
+    transform-origin: 100% 100%;
+}
+[data-slot='content'][data-placement='right'] {
+    transform-origin: 0 50%;
+}
+[data-slot='content'][data-placement='right-start'] {
+    transform-origin: 0 0;
+}
+[data-slot='content'][data-placement='right-end'] {
+    transform-origin: 0 100%;
+}
+
+/* modal backdrop (NextUI 2.4 renders it without a data-slot) */
+div[aria-hidden='true'][class*='bg-overlay'] {
+    animation: logos-fade-in var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+/*
+ * Text field focus (ported from Rakko Design's rk-field): a 2px accent stroke over the field border,
+ * revealed by a conic mask that sweeps from the bottom center up both sides; enter 240ms, exit 180ms.
+ * It is an overlay, so the field keeps its size.
+ */
+@property --logos-field-sweep {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+[data-slot='input-wrapper']::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--logos-field-border, 0px));
+    border-radius: inherit;
+    border: 2px solid var(--color-accent);
+    pointer-events: none;
+    --logos-field-sweep: 0deg;
+    -webkit-mask: conic-gradient(
+        from calc(180deg - var(--logos-field-sweep)),
+        #000 calc(var(--logos-field-sweep) * 2),
+        transparent 0
+    );
+    mask: conic-gradient(
+        from calc(180deg - var(--logos-field-sweep)),
+        #000 calc(var(--logos-field-sweep) * 2),
+        transparent 0
+    );
+    transition: --logos-field-sweep var(--motion-duration-exit) var(--motion-ease-standard);
+}
+
+/* bordered / faded fields: the stroke covers their 2px border */
+[data-slot='input-wrapper'].border-medium {
+    --logos-field-border: 2px;
+}
+
+[data-slot='input-wrapper']:focus-within::after {
+    --logos-field-sweep: 180deg;
+    transition-duration: var(--motion-duration-enter);
+}
+
+/*
+ * Switch thumb: NextUI slides it with margin-left; move it with translate instead and land it on
+ * --motion-ease-pop (overshoot, then settle) over the snappy spring duration. NextUI 2.4 gives the
+ * switch parts no data-slot, so they are matched by structure: the aria-hidden track (w-10 / w-12 /
+ * w-14 for sm / md / lg) and its origin-right thumb. Distances are NextUI's ml-4 / ml-5 / ml-6,
+ * 4px less while pressed (the pressed thumb is 4px wider).
+ */
+.group > [aria-hidden='true'].w-10 {
+    --logos-thumb-x: 1rem;
+}
+.group > [aria-hidden='true'].w-12 {
+    --logos-thumb-x: 1.25rem;
+}
+.group > [aria-hidden='true'].w-14 {
+    --logos-thumb-x: 1.5rem;
+}
+
+.group > [aria-hidden='true'] > .origin-right {
+    margin-left: 0 !important;
+    transition-property: translate, width, background-color;
+    transition-duration: var(--motion-spring-snappy-duration);
+    transition-timing-function: var(--motion-ease-pop);
+}
+
+[data-selected='true'] > [aria-hidden='true'] > .origin-right {
+    translate: var(--logos-thumb-x, 0) 0;
+}
+
+[data-selected='true'][data-pressed='true'] > [aria-hidden='true'] > .origin-right {
+    translate: calc(var(--logos-thumb-x, 4px) - 4px) 0;
+}
+
+/* NextUI buttons draw their own focus ring from react-aria's input modality (data-focus-visible);
+   the state-layer :focus-visible outline would add a second one after pointer-driven focus moves */
+button.group[data-ripple]:focus-visible:not([data-focus-visible='true']) {
+    outline: none;
+}
+
+/* data-press surfaces scale through the independent `scale` property; NextUI's own pressed
+   transform would stack on top of it */
+[data-press][data-pressed='true'] {
+    transform: none !important;
+}
+
+/*
+ * Reduced motion: every animation and transition becomes near-instant (1ms keeps animationend and
+ * the end state), so nothing moves or scales; focus outlines, state layers and selection stay.
+ * Press feedback checks the same media query itself.
+ */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-        animation: none !important;
-        transition: none !important;
+        animation-duration: 1ms !important;
+        animation-delay: 0s !important;
+        transition-duration: 1ms !important;
+        transition-delay: 0s !important;
     }
 }

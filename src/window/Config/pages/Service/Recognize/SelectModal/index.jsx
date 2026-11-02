@@ -26,6 +26,7 @@ export default function SelectModal(props) {
                                     <div key={x}>
                                         <Button
                                             fullWidth
+                                            data-press
                                             onPress={() => {
                                                 setCurrentConfigKey(createServiceInstanceKey(x));
                                                 onConfigOpen();

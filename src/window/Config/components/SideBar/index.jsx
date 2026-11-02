@@ -22,6 +22,7 @@ export default function SideBar() {
         <div className='mx-[12px] overflow-y-auto'>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/general')}
                 className='mb-[5px]'
@@ -34,6 +35,7 @@ export default function SideBar() {
             </Button>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/translate')}
                 className='mb-[5px]'
@@ -46,6 +48,7 @@ export default function SideBar() {
             </Button>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/recognize')}
                 className='mb-[5px]'
@@ -58,6 +61,7 @@ export default function SideBar() {
             </Button>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/hotkey')}
                 className='mb-[5px]'
@@ -70,6 +74,7 @@ export default function SideBar() {
             </Button>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/service')}
                 className='mb-[5px]'
@@ -82,6 +87,7 @@ export default function SideBar() {
             </Button>
             <Button
                 fullWidth
+                data-press
                 size='lg'
                 variant={setStyle('/about')}
                 className='mb-[5px]'

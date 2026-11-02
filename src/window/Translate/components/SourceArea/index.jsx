@@ -31,6 +31,7 @@ import { dismissWindow, WINDOW_HIDE_EVENT } from '../../../../utils/window';
 import * as recognizeServices from '../../../../services/recognize';
 import detect from '../../../../utils/lang_detect';
 import { joinRecognizedLines } from '../../../../utils/join_lines';
+import { TOOLTIP_DELAY } from '../../../../utils/feedback';
 
 export const sourceTextAtom = atom('');
 export const detectLanguageAtom = atom('');
@@ -408,7 +409,10 @@ export default function SourceArea(props) {
                                     </DropdownMenu>
                                 </Dropdown>
                             )}
-                            <Tooltip content={t('translate.recognize')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.recognize')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'
@@ -423,7 +427,10 @@ export default function SourceArea(props) {
                                 </Button>
                             </Tooltip>
                         </div>
-                        <Tooltip content={t(showImage ? 'translate.hide_image' : 'translate.show_image')}>
+                        <Tooltip
+                            delay={TOOLTIP_DELAY}
+                            content={t(showImage ? 'translate.hide_image' : 'translate.show_image')}
+                        >
                             <Button
                                 isIconOnly
                                 variant='light'
@@ -451,7 +458,7 @@ export default function SourceArea(props) {
                 )}
                 <CardBody className='bg-content1 p-[12px] pb-0 max-h-[40vh] overflow-y-auto'>
                     {isImage && recognizing && (
-                        <div className='space-y-3 pb-[12px]'>
+                        <div className='space-y-3 pb-[12px] logos-fade-in'>
                             <Skeleton className='w-3/5 rounded-lg'>
                                 <div className='h-3 w-3/5 rounded-lg bg-default-200'></div>
                             </Skeleton>
@@ -464,14 +471,15 @@ export default function SourceArea(props) {
                         </div>
                     )}
                     {isImage && !recognizing && recognizeError !== '' && (
-                        <div className='text-[length:var(--app-font-size)] text-danger pb-[12px] select-text whitespace-pre-wrap'>
+                        <div className='text-[length:var(--app-font-size)] text-danger pb-[12px] select-text whitespace-pre-wrap logos-enter'>
                             {recognizeError}
                         </div>
                     )}
+                    {/* logos-enter replays whenever the textarea comes back from display:none (OCR finished) */}
                     <textarea
                         autoFocus
                         ref={textAreaRef}
-                        className={`text-[length:var(--app-font-size)] bg-content1 h-full resize-none outline-none ${
+                        className={`text-[length:var(--app-font-size)] bg-content1 h-full resize-none outline-none logos-enter ${
                             isImage && (recognizing || recognizeError !== '') ? 'hidden' : ''
                         }`}
                         value={sourceText}
@@ -486,7 +494,10 @@ export default function SourceArea(props) {
                 <CardFooter className='bg-content1 rounded-none flex justify-between px-[12px] p-[5px]'>
                     <div className='flex justify-start'>
                         <ButtonGroup className='mr-[5px]'>
-                            <Tooltip content={t('translate.copy')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.copy')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'
@@ -498,7 +509,10 @@ export default function SourceArea(props) {
                                     <MdContentCopy className='text-[16px]' />
                                 </Button>
                             </Tooltip>
-                            <Tooltip content={t('translate.delete_newline')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.delete_newline')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'
@@ -514,7 +528,10 @@ export default function SourceArea(props) {
                                     <MdSmartButton className='text-[16px]' />
                                 </Button>
                             </Tooltip>
-                            <Tooltip content={t('common.clear')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('common.clear')}
+                            >
                                 <Button
                                     variant='light'
                                     size='sm'
@@ -538,7 +555,10 @@ export default function SourceArea(props) {
                             </Chip>
                         )}
                     </div>
-                    <Tooltip content={t('translate.translate')}>
+                    <Tooltip
+                        delay={TOOLTIP_DELAY}
+                        content={t('translate.translate')}
+                    >
                         <Button
                             size='sm'
                             variant='light'

@@ -1,5 +1,6 @@
 import { Input, Button, Switch, Textarea, Card, CardBody, Link, Tooltip, Progress } from '@nextui-org/react';
 import { INSTANCE_NAME_CONFIG_KEY } from '../../../utils/service_instance';
+import { TOOLTIP_DELAY } from '../../../utils/feedback';
 import { MdDeleteOutline } from 'react-icons/md';
 import toast, { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -209,7 +210,10 @@ export function Config(props) {
                                     return model.name;
                                 })
                                 .includes(serviceConfig['model']) ? (
-                                <Tooltip content={t('services.translate.ollama.not_installed')}>
+                                <Tooltip
+                                    delay={TOOLTIP_DELAY}
+                                    content={t('services.translate.ollama.not_installed')}
+                                >
                                     <Button
                                         size='sm'
                                         variant='flat'

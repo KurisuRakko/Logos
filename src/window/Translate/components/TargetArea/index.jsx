@@ -32,6 +32,7 @@ import * as builtinServices from '../../../../services/translate';
 import { info, error as logError } from 'tauri-plugin-log-api';
 import { INSTANCE_NAME_CONFIG_KEY, getDisplayInstanceName, getServiceName } from '../../../../utils/service_instance';
 import { WINDOW_HIDE_EVENT } from '../../../../utils/window';
+import { TOOLTIP_DELAY } from '../../../../utils/feedback';
 
 let translateID = [];
 
@@ -290,9 +291,11 @@ function TargetArea(props) {
                 data-open={!hide}
             >
                 <div>
-                    {/* result content, fades in when it first arrives (streamed chunks do not replay it) */}
+                    {/* result content rises in when it first arrives (streamed chunks keep the class, so they do
+                        not replay it); cards arriving together are staggered by their index */}
                     <CardBody
-                        className={`p-[12px] pb-0 font-serif ${hide && 'h-0 p-0'} ${result !== '' && 'logos-fade-in'}`}
+                        className={`p-[12px] pb-0 font-serif ${result !== '' && 'logos-enter'}`}
+                        style={{ '--logos-enter-index': index }}
                     >
                         {typeof result === 'string' ? (
                             <textarea
@@ -426,11 +429,14 @@ function TargetArea(props) {
                         )}
                     </CardBody>
                     <CardFooter
-                        className={`bg-content1 rounded-none flex px-[12px] p-[5px] ${hide && 'hidden'}`}
+                        className='bg-content1 rounded-none flex px-[12px] p-[5px]'
                     >
                         <ButtonGroup>
                             {/* copy button */}
-                            <Tooltip content={t('translate.copy')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.copy')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'
@@ -444,7 +450,10 @@ function TargetArea(props) {
                                 </Button>
                             </Tooltip>
                             {/* translate back button */}
-                            <Tooltip content={t('translate.translate_back')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.translate_back')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'
@@ -509,7 +518,10 @@ function TargetArea(props) {
                                 </Button>
                             </Tooltip>
                             {/* error retry button */}
-                            <Tooltip content={t('translate.retry')}>
+                            <Tooltip
+                                delay={TOOLTIP_DELAY}
+                                content={t('translate.retry')}
+                            >
                                 <Button
                                     isIconOnly
                                     variant='light'

@@ -73,7 +73,13 @@ export default function Config() {
                         osType === 'Linux' ? 'h-[calc(100vh-38px)]' : 'h-[calc(100vh-36px)]'
                     }`}
                 >
-                    {page}
+                    {/* re-keyed per route so each page switch replays the entrance */}
+                    <div
+                        key={location.pathname}
+                        className='logos-page-enter h-full'
+                    >
+                        {page}
+                    </div>
                 </div>
             </div>
         </>
