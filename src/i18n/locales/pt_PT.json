@@ -266,8 +266,7 @@
                     "disable": "Desativar",
                     "translate": "Traduzir",
                     "ocr_translate": "Tradução de Imagem",
-                    "config": "Preferência",
-                    "ocr_recognize": "Reconhecimento de Texto"
+                    "config": "Preferência"
                 },
                 "label": "Geral",
                 "theme": {
@@ -339,10 +338,8 @@
             "recognize": {
                 "delete_newline": "Apagar Nova Linha Automaticamente",
                 "language": "Idioma de Reconhecimento",
-                "close_on_blur": "Fechar janela quando o foco for perdido",
                 "title": "Configurações de Reconhecimento",
                 "label": "Reconhecimento",
-                "hide_window": "Ocultar Janela de Reconhecimento",
                 "auto_copy": "Copiar Automaticamente"
             },
             "hotkey": {
@@ -353,8 +350,7 @@
                 "input_translate": "Tradução do Texto",
                 "title": "Configurações de Atalhos",
                 "set_hotkey": "Pressione para Definir a Tecla de Atalho",
-                "selection_translate": "Traduzir Selecionado",
-                "ocr_recognize": "Reconhecimento de Texto"
+                "selection_translate": "Traduzir Selecionado"
             },
             "service": {
                 "add_service": "Adicionar Serviço",
@@ -389,15 +385,11 @@
             "recognizing": "A reconhecer…",
             "translate_back": "Tradução de volta ao original",
             "translate": "Traduzir",
-            "copy": "Copiar"
-        },
-        "recognize": {
-            "translate": "Traduzir",
-            "delete_newline": "Apagar Quebra de Linha",
-            "recognize": "Reconhecimento",
-            "copy_text": "Copiar",
-            "delete_space": "Apagar Espaço",
-            "copy_img": "Copiar imagem"
+            "copy": "Copiar",
+            "recognize": "Reconhecer novamente",
+            "recognize_language": "Idioma de reconhecimento",
+            "show_image": "Mostrar captura de ecrã",
+            "hide_image": "Ocultar captura de ecrã"
         }
     }
 }

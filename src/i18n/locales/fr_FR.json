@@ -265,8 +265,7 @@
                     "disable": "Désactiver",
                     "translate": "Traduire",
                     "ocr_translate": "Traduction de capture d'écran",
-                    "config": "Préférence",
-                    "ocr_recognize": "Reconnaissance de texte"
+                    "config": "Préférence"
                 },
                 "label": "Général",
                 "theme": {
@@ -339,10 +338,8 @@
             "recognize": {
                 "delete_newline": "Suppression automatique des retours à la ligne",
                 "language": "Langue de reconnaissance",
-                "close_on_blur": "Fermer la fenêtre lorsque le focus est perdu",
                 "title": "Paramètres de reconnaissance",
                 "label": "Reconnaissance",
-                "hide_window": "Masquer la fenêtre de reconnaissance",
                 "auto_copy": "Copie automatique"
             },
             "hotkey": {
@@ -353,7 +350,6 @@
                 "input_translate": "Traduction du texte",
                 "title": "Paramètres des raccourcis",
                 "selection_translate": "Traduction de la sélection",
-                "ocr_recognize": "Reconnaissance de texte",
                 "set_hotkey": "Appuyer pour définir"
             },
             "service": {
@@ -389,15 +385,11 @@
             "recognizing": "Reconnaissance…",
             "translate_back": "Revenir à la traduction d'origine",
             "translate": "Traduire",
-            "copy": "Copier"
-        },
-        "recognize": {
-            "translate": "Traduire",
-            "delete_newline": "Supprimer le retour à la ligne",
-            "recognize": "Reconnaissance",
-            "copy_text": "Copier",
-            "copy_img": "Copier l'image",
-            "delete_space": "Supprimer l'espace"
+            "copy": "Copier",
+            "recognize": "Reconnaître à nouveau",
+            "recognize_language": "Langue de reconnaissance",
+            "show_image": "Afficher la capture",
+            "hide_image": "Masquer la capture"
         }
     }
 }

@@ -296,36 +296,6 @@ pub fn image_translate() {
     window.emit("new_text", "[IMAGE_TRANSLATE]").unwrap();
 }
 
-pub fn recognize_window() {
-    // A reused window is resized/re-centred like a new one. No `reactivate` here: the page
-    // listens to both events and `new_image` alone makes it load the image and show itself
-    let (window, _exists) = build_window("recognize", "Recognize");
-    let width = match get("recognize_window_width") {
-        Some(v) => v.as_i64().unwrap(),
-        None => {
-            set("recognize_window_width", 800);
-            800
-        }
-    };
-    let height = match get("recognize_window_height") {
-        Some(v) => v.as_i64().unwrap(),
-        None => {
-            set("recognize_window_height", 400);
-            400
-        }
-    };
-    let monitor = window.current_monitor().unwrap().unwrap();
-    let dpi = monitor.scale_factor();
-    window
-        .set_size(tauri::PhysicalSize::new(
-            (width as f64) * dpi,
-            (height as f64) * dpi,
-        ))
-        .unwrap();
-    window.center().unwrap();
-    window.emit("new_image", "").unwrap();
-}
-
 #[cfg(not(target_os = "macos"))]
 fn screenshot_window() -> Window {
     let (window, exists) = build_window("screenshot", "Screenshot");
@@ -401,34 +371,6 @@ where
     }));
 }
 
-pub fn ocr_recognize() {
-    #[cfg(target_os = "macos")]
-    {
-        let app_handle = APP.get().unwrap();
-        let mut app_cache_dir_path = cache_dir().expect("Get Cache Dir Failed");
-        app_cache_dir_path.push(&app_handle.config().tauri.bundle.identifier);
-        if !app_cache_dir_path.exists() {
-            // 创建目录
-            fs::create_dir_all(&app_cache_dir_path).expect("Create Cache Dir Failed");
-        }
-        app_cache_dir_path.push("pot_screenshot_cut.png");
-
-        let path = app_cache_dir_path.to_string_lossy().replace("\\\\?\\", "");
-        println!("Screenshot path: {}", path);
-        if let Ok(_output) = std::process::Command::new("/usr/sbin/screencapture")
-            .arg("-i")
-            .arg("-r")
-            .arg(path)
-            .output()
-        {
-            recognize_window();
-        }
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        on_screenshot_success(recognize_window);
-    }
-}
 pub fn ocr_translate() {
     #[cfg(target_os = "macos")]
     {

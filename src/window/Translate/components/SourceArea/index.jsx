@@ -1,4 +1,18 @@
-import { Button, Card, CardBody, CardFooter, ButtonGroup, Chip, Tooltip, Spacer } from '@nextui-org/react';
+import {
+    Button,
+    Card,
+    CardBody,
+    CardFooter,
+    ButtonGroup,
+    Chip,
+    Tooltip,
+    Spacer,
+    Skeleton,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
+} from '@nextui-org/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { writeText } from '@tauri-apps/api/clipboard';
 import { appWindow } from '@tauri-apps/api/window';
@@ -7,7 +21,8 @@ import { MdContentCopy } from 'react-icons/md';
 import { MdSmartButton } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { HiTranslate } from 'react-icons/hi';
-import { LuDelete } from 'react-icons/lu';
+import { LuDelete, LuImage } from 'react-icons/lu';
+import { GiCycle } from 'react-icons/gi';
 import { invoke } from '@tauri-apps/api';
 import { atom, useAtom, useSetAtom } from 'jotai';
 import { getServiceName } from '../../../../utils/service_instance';
@@ -15,6 +30,7 @@ import { useConfig, useServiceInstanceList, useSyncAtom } from '../../../../hook
 import { dismissWindow, WINDOW_HIDE_EVENT } from '../../../../utils/window';
 import * as recognizeServices from '../../../../services/recognize';
 import detect from '../../../../utils/lang_detect';
+import { joinRecognizedLines } from '../../../../utils/join_lines';
 
 export const sourceTextAtom = atom('');
 export const detectLanguageAtom = atom('');
@@ -28,14 +44,24 @@ export default function SourceArea(props) {
     const [incrementalTranslate] = useConfig('incremental_translate', false);
     const [dynamicTranslate] = useConfig('dynamic_translate', false);
     const [deleteNewline] = useConfig('translate_delete_newline', false);
-    const [recognizeLanguage] = useConfig('recognize_language', 'auto');
+    const [recognizeLanguage, setRecognizeLanguage] = useConfig('recognize_language', 'auto');
+    const [recognizeDeleteNewline] = useConfig('recognize_delete_newline', false);
+    const [recognizeAutoCopy] = useConfig('recognize_auto_copy', false);
+    const [showImage, setShowImage] = useConfig('image_translate_show_image', false);
     const [recognizeServiceList] = useServiceInstanceList('recognize_service_list', ['system']);
     const [hideWindow] = useConfig('translate_hide_window', false);
     const [hideSource] = useConfig('hide_source', false);
     const [windowType, setWindowType] = useState('[SELECTION_TRANSLATE]');
+    const [imageBase64, setImageBase64] = useState('');
+    const [recognizing, setRecognizing] = useState(false);
+    const [recognizeError, setRecognizeError] = useState('');
     const { t } = useTranslation();
     const textAreaRef = useRef();
     const handleNewTextRef = useRef();
+    const changeSourceTextRef = useRef();
+    const sourceTextChangeTimerRef = useRef(null);
+    // only the latest recognition may write its result
+    const recognizeIdRef = useRef(0);
     const initializedRef = useRef(false);
     // On first open both `new_text` and the initial get_text may deliver the same text;
     // remember which source handled what so the duplicate is dropped
@@ -57,8 +83,75 @@ export default function SourceArea(props) {
         setDetectLanguage('');
     };
 
+    const clearImage = () => {
+        recognizeIdRef.current++;
+        setImageBase64('');
+        setRecognizing(false);
+        setRecognizeError('');
+    };
+
+    const cancelPendingTranslate = () => {
+        if (sourceTextChangeTimerRef.current) {
+            clearTimeout(sourceTextChangeTimerRef.current);
+            sourceTextChangeTimerRef.current = null;
+        }
+    };
+
+    const translateNow = (text) => {
+        cancelPendingTranslate();
+        detect_language(text).then(() => {
+            syncSourceText();
+        });
+    };
+
+    // recognize the screenshot and put the text in the source box; `append` follows incremental translate
+    const recognizeImage = (base64, language, append = false) => {
+        const id = ++recognizeIdRef.current;
+        setRecognizeError('');
+        const serviceInstanceKey = recognizeServiceList[0];
+        const service = recognizeServices[getServiceName(serviceInstanceKey)];
+        if (!service || !(language in service.Language)) {
+            setRecognizing(false);
+            setRecognizeError('Language not supported');
+            return;
+        }
+        setRecognizing(true);
+        service
+            .recognize(base64, service.Language[language], {
+                config: serviceInstanceConfigMap[serviceInstanceKey],
+            })
+            .then(
+                (v) => {
+                    if (recognizeIdRef.current !== id) return;
+                    let newText = v.trim();
+                    if (recognizeDeleteNewline) {
+                        newText = joinRecognizedLines(newText);
+                    }
+                    setRecognizing(false);
+                    if (recognizeAutoCopy) {
+                        writeText(newText);
+                    }
+                    if (append) {
+                        setSourceText((old) => {
+                            return old + ' ' + newText;
+                        });
+                    } else {
+                        setSourceText(newText);
+                    }
+                    translateNow(newText);
+                },
+                (e) => {
+                    if (recognizeIdRef.current !== id) return;
+                    setRecognizing(false);
+                    setRecognizeError(e.toString());
+                }
+            );
+    };
+
     const handleNewText = async (text) => {
         text = text.trim();
+        cancelPendingTranslate();
+        clearImage();
         if (hideWindow) {
             appWindow.hide();
         } else {
@@ -77,41 +170,10 @@ export default function SourceArea(props) {
             setSourceText('');
         } else if (text === '[IMAGE_TRANSLATE]') {
             setWindowType('[IMAGE_TRANSLATE]');
+            setRecognizing(true);
             const base64 = await invoke('get_base64');
-            const serviceInstanceKey = recognizeServiceList[0];
-            const service = recognizeServices[getServiceName(serviceInstanceKey)];
-            if (service && recognizeLanguage in service.Language) {
-                const instanceConfig = serviceInstanceConfigMap[serviceInstanceKey];
-                service
-                    .recognize(base64, service.Language[recognizeLanguage], {
-                        config: instanceConfig,
-                    })
-                    .then(
-                        (v) => {
-                            let newText = v.trim();
-                            if (deleteNewline) {
-                                newText = v.replace(/\-\s+/g, '').replace(/\s+/g, ' ');
-                            } else {
-                                newText = v.trim();
-                            }
-                            if (incrementalTranslate) {
-                                setSourceText((old) => {
-                                    return old + ' ' + newText;
-                                });
-                            } else {
-                                setSourceText(newText);
-                            }
-                            detect_language(newText).then(() => {
-                                syncSourceText();
-                            });
-                        },
-                        (e) => {
-                            setSourceText(e.toString());
-                        }
-                    );
-            } else {
-                setSourceText('Language not supported');
-            }
+            setImageBase64(base64);
+            recognizeImage(base64, recognizeLanguage, incrementalTranslate);
         } else {
             setWindowType('[SELECTION_TRANSLATE]');
             let newText = text.trim();
@@ -138,9 +200,7 @@ export default function SourceArea(props) {
     const keyDown = (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            detect_language(sourceText).then(() => {
-                syncSourceText();
-            });
+            translateNow(sourceText);
         }
         if (event.key === 'Escape') {
             dismissWindow();
@@ -152,12 +212,17 @@ export default function SourceArea(props) {
             appWindow.setFocus();
             handleTextOnce('event', event.payload);
         });
-        window.addEventListener(WINDOW_HIDE_EVENT, clearSourceText);
+        const onHide = () => {
+            cancelPendingTranslate();
+            clearSourceText();
+            clearImage();
+        };
+        window.addEventListener(WINDOW_HIDE_EVENT, onHide);
         return () => {
             unlisten.then((f) => {
                 f();
             });
-            window.removeEventListener(WINDOW_HIDE_EVENT, clearSourceText);
+            window.removeEventListener(WINDOW_HIDE_EVENT, onHide);
         };
     }, []);
 
@@ -168,6 +233,8 @@ export default function SourceArea(props) {
             deleteNewline !== null &&
             incrementalTranslate !== null &&
             recognizeLanguage !== null &&
+            recognizeDeleteNewline !== null &&
+            recognizeAutoCopy !== null &&
             recognizeServiceList !== null &&
             hideWindow !== null
         ) {
@@ -176,7 +243,15 @@ export default function SourceArea(props) {
                 handleTextOnce('get_text', v);
             });
         }
-    }, [deleteNewline, incrementalTranslate, recognizeLanguage, recognizeServiceList, hideWindow]);
+    }, [
+        deleteNewline,
+        incrementalTranslate,
+        recognizeLanguage,
+        recognizeDeleteNewline,
+        recognizeAutoCopy,
+        recognizeServiceList,
+        hideWindow,
+    ]);
 
     useEffect(() => {
         textAreaRef.current.style.height = '50px';
@@ -187,21 +262,21 @@ export default function SourceArea(props) {
         setDetectLanguage(await detect(text));
     };
 
-    let sourceTextChangeTimer = null;
+    // only user edits go through here: translate once typing has paused for a second
     const changeSourceText = async (text) => {
         setDetectLanguage('');
         await setSourceText(text);
+        cancelPendingTranslate();
         if (dynamicTranslate) {
-            if (sourceTextChangeTimer) {
-                clearTimeout(sourceTextChangeTimer);
-            }
-            sourceTextChangeTimer = setTimeout(() => {
+            sourceTextChangeTimerRef.current = setTimeout(() => {
+                sourceTextChangeTimerRef.current = null;
                 detect_language(text).then(() => {
                     syncSourceText();
                 });
             }, 1000);
         }
-    }
+    };
+    changeSourceTextRef.current = changeSourceText;
 
     const transformVarName = function (str) {
         let str2 = str;
@@ -284,7 +359,7 @@ export default function SourceArea(props) {
                 const convertedText = transformVarName(selectionText);
                 const targetText = originText.substring(0, selectionStart) + convertedText + originText.substring(selectionEnd);
 
-                await changeSourceText(targetText);
+                await changeSourceTextRef.current(targetText);
                 textAreaRef.current.selectionStart = selectionStart;
                 textAreaRef.current.selectionEnd = selectionStart + convertedText.length;
             }
@@ -292,17 +367,114 @@ export default function SourceArea(props) {
     }, [textAreaRef]);
 
 
+    const isImage = windowType === '[IMAGE_TRANSLATE]';
+    const recognizeService =
+        recognizeServiceList !== null ? recognizeServices[getServiceName(recognizeServiceList[0])] : undefined;
+    const recognizeLanguageList = recognizeService ? Object.keys(recognizeService.Language) : [];
+
     return (
         <div className={hideSource && windowType !== '[INPUT_TRANSLATE]' && 'hidden'}>
             <Card
                 shadow='none'
                 className='bg-content1 rounded-[10px] mt-[1px] pb-0'
             >
+                {isImage && (
+                    <div className='flex justify-between items-center px-[12px] pt-[5px]'>
+                        <div className='flex items-center'>
+                            {recognizeLanguage !== null && (
+                                <Dropdown>
+                                    <DropdownTrigger>
+                                        <Button
+                                            size='sm'
+                                            radius='sm'
+                                            variant='light'
+                                            aria-label={t('translate.recognize_language')}
+                                        >
+                                            {t(`languages.${recognizeLanguage}`)}
+                                        </Button>
+                                    </DropdownTrigger>
+                                    <DropdownMenu
+                                        aria-label={t('translate.recognize_language')}
+                                        className='max-h-[40vh] overflow-y-auto'
+                                        onAction={(key) => {
+                                            setRecognizeLanguage(key);
+                                            if (imageBase64 !== '' && !recognizing) {
+                                                recognizeImage(imageBase64, key);
+                                            }
+                                        }}
+                                    >
+                                        {recognizeLanguageList.map((x) => {
+                                            return <DropdownItem key={x}>{t(`languages.${x}`)}</DropdownItem>;
+                                        })}
+                                    </DropdownMenu>
+                                </Dropdown>
+                            )}
+                            <Tooltip content={t('translate.recognize')}>
+                                <Button
+                                    isIconOnly
+                                    variant='light'
+                                    size='sm'
+                                    aria-label={t('translate.recognize')}
+                                    isDisabled={imageBase64 === '' || recognizing}
+                                    onPress={() => {
+                                        recognizeImage(imageBase64, recognizeLanguage);
+                                    }}
+                                >
+                                    <GiCycle className='text-[16px]' />
+                                </Button>
+                            </Tooltip>
+                        </div>
+                        <Tooltip content={t(showImage ? 'translate.hide_image' : 'translate.show_image')}>
+                            <Button
+                                isIconOnly
+                                variant='light'
+                                size='sm'
+                                aria-label={t(showImage ? 'translate.hide_image' : 'translate.show_image')}
+                                color={showImage ? 'primary' : 'default'}
+                                isDisabled={imageBase64 === ''}
+                                onPress={() => {
+                                    setShowImage(!showImage);
+                                }}
+                            >
+                                <LuImage className='text-[16px]' />
+                            </Button>
+                        </Tooltip>
+                    </div>
+                )}
+                {isImage && showImage && imageBase64 !== '' && (
+                    <div className='px-[12px] pt-[5px]'>
+                        <img
+                            src={`data:image/png;base64,${imageBase64}`}
+                            className='w-full max-h-[160px] object-contain rounded-[6px]'
+                            draggable={false}
+                        />
+                    </div>
+                )}
                 <CardBody className='bg-content1 p-[12px] pb-0 max-h-[40vh] overflow-y-auto'>
+                    {isImage && recognizing && (
+                        <div className='space-y-3 pb-[12px]'>
+                            <Skeleton className='w-3/5 rounded-lg'>
+                                <div className='h-3 w-3/5 rounded-lg bg-default-200'></div>
+                            </Skeleton>
+                            <Skeleton className='w-4/5 rounded-lg'>
+                                <div className='h-3 w-4/5 rounded-lg bg-default-200'></div>
+                            </Skeleton>
+                            <Skeleton className='w-2/5 rounded-lg'>
+                                <div className='h-3 w-2/5 rounded-lg bg-default-300'></div>
+                            </Skeleton>
+                        </div>
+                    )}
+                    {isImage && !recognizing && recognizeError !== '' && (
+                        <div className={`text-[${appFontSize}px] text-danger pb-[12px] select-text whitespace-pre-wrap`}>
+                            {recognizeError}
+                        </div>
+                    )}
                     <textarea
                         autoFocus
                         ref={textAreaRef}
-                        className={`text-[${appFontSize}px] bg-content1 h-full resize-none outline-none`}
+                        className={`text-[${appFontSize}px] bg-content1 h-full resize-none outline-none ${
+                            isImage && (recognizing || recognizeError !== '') ? 'hidden' : ''
+                        }`}
                         value={sourceText}
                         onKeyDown={keyDown}
                         onChange={(e) => {
@@ -377,9 +549,7 @@ export default function SourceArea(props) {
                             className='text-[14px] font-bold'
                             startContent={<HiTranslate className='text-[16px]' />}
                             onPress={() => {
-                                detect_language(sourceText).then(() => {
-                                    syncSourceText();
-                                });
+                                translateNow(sourceText);
                             }}
                         />
                     </Tooltip>

@@ -9,6 +9,12 @@
                     "title": "Lingva"
                 }
             }
+        },
+        "translate": {
+            "recognize": "Yeniden tanı",
+            "recognize_language": "Tanıma dili",
+            "show_image": "Ekran görüntüsünü göster",
+            "hide_image": "Ekran görüntüsünü gizle"
         }
     }
 }

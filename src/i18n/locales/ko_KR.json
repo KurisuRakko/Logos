@@ -128,7 +128,6 @@
                     "config": "설정",
                     "translate": "번역",
                     "disable": "비활성화",
-                    "ocr_recognize": "문자 인식",
                     "ocr_translate": "스크린샷 번역"
                 }
             },
@@ -180,16 +179,13 @@
                 "title": "인식 설정",
                 "language": "인식 언어",
                 "delete_newline": "줄바꿈 자동 삭제",
-                "auto_copy": "자동 복사",
-                "close_on_blur": "다른 곳을 클릭하여 창 숨기기",
-                "hide_window": "인식 창 숨기기"
+                "auto_copy": "자동 복사"
             },
             "hotkey": {
                 "label": "단축키",
                 "title": "단축키 설정",
                 "selection_translate": "선택 영역 번역",
                 "input_translate": "텍스트 번역",
-                "ocr_recognize": "텍스트 인식",
                 "ocr_translate": "스크린샷 번역",
                 "is_register": "해당 단축키는 이미 등록되어 있습니다",
                 "success": "단축키가 정상 등록되었습니다",
@@ -221,6 +217,12 @@
                 "telegram": "텔레그램",
                 "discussion": "GitHub 토론"
             }
+        },
+        "translate": {
+            "recognize": "다시 인식",
+            "recognize_language": "인식 언어",
+            "show_image": "스크린샷 표시",
+            "hide_image": "스크린샷 숨기기"
         }
     }
 }

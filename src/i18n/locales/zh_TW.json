@@ -69,7 +69,6 @@
                     "config": "偏好設定",
                     "translate": "翻譯",
                     "disable": "停用",
-                    "ocr_recognize": "文字辨識",
                     "ocr_translate": "截圖翻譯"
                 },
                 "app_font": "字型",
@@ -135,16 +134,13 @@
                 "title": "文字辨識設定",
                 "language": "辨識語言",
                 "delete_newline": "自動刪除換行",
-                "auto_copy": "自動複製",
-                "close_on_blur": "失去焦點時關閉視窗",
-                "hide_window": "隱藏辨識視窗"
+                "auto_copy": "自動複製"
             },
             "hotkey": {
                 "label": "快速鍵設定",
                 "title": "快速鍵設定",
                 "selection_translate": "選取翻譯",
                 "input_translate": "輸入翻譯",
-                "ocr_recognize": "文字辨識",
                 "ocr_translate": "截圖翻譯",
                 "is_register": "該快速鍵已被註冊",
                 "success": "快速鍵註冊成功",
@@ -386,15 +382,11 @@
             "copy": "複製",
             "retry": "重試",
             "delete_newline": "刪除換行",
-            "translate_back": "翻譯回原文"
-        },
-        "recognize": {
-            "recognize": "辨識",
-            "translate": "翻譯",
-            "copy_img": "複製圖片",
-            "copy_text": "複製",
-            "delete_newline": "刪除換行",
-            "delete_space": "刪除空格"
+            "translate_back": "翻譯回原文",
+            "recognize": "重新辨識",
+            "recognize_language": "辨識語言",
+            "show_image": "顯示截圖",
+            "hide_image": "隱藏截圖"
         }
     }
 }

@@ -77,6 +77,12 @@
             "write_clipboard": "Ýat paneline ýazyň",
             "coming": "Tiz ýakynda…",
             "clear": "Arassala"
+        },
+        "translate": {
+            "recognize": "Recognize again",
+            "recognize_language": "Recognition language",
+            "show_image": "Show screenshot",
+            "hide_image": "Hide screenshot"
         }
     }
 }

@@ -62,7 +62,6 @@ const modifierNames = new Set([
 const hotkeyItems = [
     { name: 'hotkey_selection_translate', label: 'config.hotkey.selection_translate' },
     { name: 'hotkey_input_translate', label: 'config.hotkey.input_translate' },
-    { name: 'hotkey_ocr_recognize', label: 'config.hotkey.ocr_recognize' },
     { name: 'hotkey_ocr_translate', label: 'config.hotkey.ocr_translate' },
 ];
 

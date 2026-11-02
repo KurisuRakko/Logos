@@ -9,6 +9,12 @@
                     "title": "Lingva"
                 }
             }
+        },
+        "translate": {
+            "recognize": "Gjenkjenn på nytt",
+            "recognize_language": "Gjenkjenningsspråk",
+            "show_image": "Vis skjermbilde",
+            "hide_image": "Skjul skjermbilde"
         }
     }
 }

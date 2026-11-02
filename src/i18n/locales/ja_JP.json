@@ -16,7 +16,6 @@
                 "event": {
                     "translate": "翻訳",
                     "config": "コンフィグ",
-                    "ocr_recognize": "テキスト認識",
                     "ocr_translate": "スクリーンショット翻訳"
                 },
                 "title": "一般設定",
@@ -92,14 +91,11 @@
         "translate": {
             "translate": "翻訳",
             "delete_newline": "改行を削除",
-            "copy": "コピー"
-        },
-        "recognize": {
-            "translate": "翻訳",
-            "delete_newline": "改行を削除",
-            "copy_text": "コピー",
-            "delete_space": "空白を削除",
-            "copy_img": "画像をコピー"
+            "copy": "コピー",
+            "recognize": "再認識",
+            "recognize_language": "認識言語",
+            "show_image": "スクリーンショットを表示",
+            "hide_image": "スクリーンショットを非表示"
         },
         "services": {
             "translate": {

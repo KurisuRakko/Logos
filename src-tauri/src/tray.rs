@@ -1,7 +1,6 @@
 use crate::config::{get, set};
 use crate::window::config_window;
 use crate::window::input_translate;
-use crate::window::ocr_recognize;
 use crate::window::ocr_translate;
 use log::info;
 use tauri::CustomMenuItem;
@@ -20,7 +19,6 @@ struct TrayText {
     copy_target: &'static str,
     copy_source_target: &'static str,
     copy_disable: &'static str,
-    ocr_recognize: &'static str,
     ocr_translate: &'static str,
     config: &'static str,
     view_log: &'static str,
@@ -35,7 +33,6 @@ const TEXT_EN: TrayText = TrayText {
     copy_target: "Target",
     copy_source_target: "Source+Target",
     copy_disable: "Disable",
-    ocr_recognize: "OCR Recognize",
     ocr_translate: "OCR Translate",
     config: "Config",
     view_log: "View Log",
@@ -50,7 +47,6 @@ const TEXT_ZH_CN: TrayText = TrayText {
     copy_target: "译文",
     copy_source_target: "原文+译文",
     copy_disable: "关闭",
-    ocr_recognize: "文字识别",
     ocr_translate: "截图翻译",
     config: "偏好设置",
     view_log: "查看日志",
@@ -65,7 +61,6 @@ const TEXT_ZH_TW: TrayText = TrayText {
     copy_target: "譯文",
     copy_source_target: "原文+譯文",
     copy_disable: "關閉",
-    ocr_recognize: "文字識別",
     ocr_translate: "截圖翻譯",
     config: "偏好設定",
     view_log: "查看日誌",
@@ -80,7 +75,6 @@ const TEXT_JA: TrayText = TrayText {
     copy_target: "訳文",
     copy_source_target: "原文+訳文",
     copy_disable: "閉じる",
-    ocr_recognize: "テキスト認識",
     ocr_translate: "スクリーンショットの翻訳",
     config: "プリファレンス設定",
     view_log: "ログを見る",
@@ -95,7 +89,6 @@ const TEXT_KO: TrayText = TrayText {
     copy_target: "번역문",
     copy_source_target: "원문+번역문",
     copy_disable: "닫기",
-    ocr_recognize: "문자인식",
     ocr_translate: "스크린샷 번역",
     config: "기본 설정",
     view_log: "로그 보기",
@@ -110,7 +103,6 @@ const TEXT_FR: TrayText = TrayText {
     copy_target: "Cible",
     copy_source_target: "Source+Cible",
     copy_disable: "Désactiver",
-    ocr_recognize: "Reconnaissance de texte",
     ocr_translate: "Traduction d'image",
     config: "Paramètres",
     view_log: "Voir le journal",
@@ -125,7 +117,6 @@ const TEXT_DE: TrayText = TrayText {
     copy_target: "Ziel",
     copy_source_target: "Quelle+Ziel",
     copy_disable: "Deaktivieren",
-    ocr_recognize: "Texterkennung",
     ocr_translate: "Bildübersetzung",
     config: "Einstellungen",
     view_log: "Protokoll anzeigen",
@@ -140,7 +131,6 @@ const TEXT_RU: TrayText = TrayText {
     copy_target: "Цель",
     copy_source_target: "Источник+Цель",
     copy_disable: "Отключить",
-    ocr_recognize: "Распознавание текста",
     ocr_translate: "Перевод изображения",
     config: "Настройки",
     view_log: "Просмотр журнала",
@@ -155,7 +145,6 @@ const TEXT_PT_BR: TrayText = TrayText {
     copy_target: "Destino",
     copy_source_target: "Origem+Destino",
     copy_disable: "Desabilitar",
-    ocr_recognize: "Reconhecimento de Texto",
     ocr_translate: "Tradução de Imagem",
     config: "Configurações",
     view_log: "Exibir Registro",
@@ -170,7 +159,6 @@ const TEXT_UK: TrayText = TrayText {
     copy_target: "Мета",
     copy_source_target: "Джерело+Мета",
     copy_disable: "Відключивши",
-    ocr_recognize: "Розпізнавання тексту",
     ocr_translate: "Переклад зображення",
     config: "Настройка",
     view_log: "Перегляд журналу",
@@ -209,7 +197,6 @@ fn tray_menu(text: &TrayText) -> SystemTrayMenu {
                 .add_item(CustomMenuItem::new("copy_disable", text.copy_disable)),
         ))
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(CustomMenuItem::new("ocr_recognize", text.ocr_recognize))
         .add_item(CustomMenuItem::new("ocr_translate", text.ocr_translate))
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(CustomMenuItem::new("config", text.config))
@@ -285,7 +272,6 @@ pub fn tray_event_handler<'a>(app: &'a AppHandle, event: SystemTrayEvent) {
             "copy_target" => on_auto_copy_click(app, "target"),
             "copy_source_target" => on_auto_copy_click(app, "source_target"),
             "copy_disable" => on_auto_copy_click(app, "disable"),
-            "ocr_recognize" => on_ocr_recognize_click(),
             "ocr_translate" => on_ocr_translate_click(),
             "config" => on_config_click(),
             "view_log" => on_view_log_click(app),
@@ -309,8 +295,7 @@ fn on_tray_click() {
     match event.as_str() {
         "config" => config_window(),
         "translate" => input_translate(),
-        "ocr_recognize" => ocr_recognize(),
-        "ocr_translate" => ocr_translate(),
+        "ocr_recognize" | "ocr_translate" => ocr_translate(),
         "disable" => {}
         _ => config_window(),
     }
@@ -323,9 +308,6 @@ fn on_auto_copy_click(app: &AppHandle, mode: &str) {
     set("translate_auto_copy", mode);
     app.emit_all("translate_auto_copy_changed", mode).unwrap();
     update_tray(app.app_handle(), "".to_string(), mode.to_string());
-}
-fn on_ocr_recognize_click() {
-    ocr_recognize();
 }
 fn on_ocr_translate_click() {
     ocr_translate();

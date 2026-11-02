@@ -1,5 +1,5 @@
 use crate::config::{get, set};
-use crate::window::{input_translate, ocr_recognize, ocr_translate, selection_translate};
+use crate::window::{input_translate, ocr_translate, selection_translate};
 use crate::APP;
 use log::{info, warn};
 use tauri::{AppHandle, GlobalShortcutManager};
@@ -82,6 +82,21 @@ where
     Ok(())
 }
 
+// Migration: the OCR recognize window was merged into OCR translate, so its hotkey moves over
+fn migrate_ocr_recognize_hotkey() {
+    let get_str = |name: &str| {
+        get(name)
+            .and_then(|v| v.as_str().map(str::to_string))
+            .unwrap_or_default()
+    };
+    let recognize = get_str("hotkey_ocr_recognize");
+    if !recognize.is_empty() && get_str("hotkey_ocr_translate").is_empty() {
+        set("hotkey_ocr_translate", recognize.as_str());
+        set("hotkey_ocr_recognize", "");
+        info!("Moved hotkey_ocr_recognize to hotkey_ocr_translate: {}", recognize);
+    }
+}
+
 // Register global shortcuts
 pub fn register_shortcut(shortcut: &str) -> Result<(), String> {
     let app_handle = APP.get().unwrap();
@@ -95,9 +110,9 @@ pub fn register_shortcut(shortcut: &str) -> Result<(), String> {
         "hotkey_input_translate" => {
             register(app_handle, "hotkey_input_translate", input_translate, "")?
         }
-        "hotkey_ocr_recognize" => register(app_handle, "hotkey_ocr_recognize", ocr_recognize, "")?,
         "hotkey_ocr_translate" => register(app_handle, "hotkey_ocr_translate", ocr_translate, "")?,
         "all" => {
+            migrate_ocr_recognize_hotkey();
             let mut failures: Vec<String> = Vec::new();
             if let Err(e) = register(
                 app_handle,
@@ -109,9 +124,6 @@ pub fn register_shortcut(shortcut: &str) -> Result<(), String> {
             }
             if let Err(e) = register(app_handle, "hotkey_input_translate", input_translate, "") {
                 failures.push(format!("hotkey_input_translate: {}", e));
-            }
-            if let Err(e) = register(app_handle, "hotkey_ocr_recognize", ocr_recognize, "") {
-                failures.push(format!("hotkey_ocr_recognize: {}", e));
             }
             if let Err(e) = register(app_handle, "hotkey_ocr_translate", ocr_translate, "") {
                 failures.push(format!("hotkey_ocr_translate: {}", e));
@@ -141,9 +153,6 @@ pub fn register_shortcut_by_frontend(name: &str, shortcut: &str) -> Result<(), S
             input_translate,
             shortcut,
         )?,
-        "hotkey_ocr_recognize" => {
-            register(app_handle, "hotkey_ocr_recognize", ocr_recognize, shortcut)?
-        }
         "hotkey_ocr_translate" => {
             register(app_handle, "hotkey_ocr_translate", ocr_translate, shortcut)?
         }

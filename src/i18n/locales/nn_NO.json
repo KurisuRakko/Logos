@@ -9,6 +9,12 @@
                     "title": "Lingva"
                 }
             }
+        },
+        "translate": {
+            "recognize": "Recognize again",
+            "recognize_language": "Recognition language",
+            "show_image": "Show screenshot",
+            "hide_image": "Hide screenshot"
         }
     }
 }

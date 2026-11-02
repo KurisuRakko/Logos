@@ -15,7 +15,6 @@ import './i18n';
 const windowMap = {
     translate: lazy(() => import('./window/Translate')),
     screenshot: lazy(() => import('./window/Screenshot')),
-    recognize: lazy(() => import('./window/Recognize')),
     config: lazy(() => import('./window/Config')),
 };
 

@@ -79,7 +79,6 @@
                 "app_fallback_font": "Fuente alternativa",
                 "dev_mode": "Modo desarrollador",
                 "event": {
-                    "ocr_recognize": "Reconocimiento de texto",
                     "disable": "Desactivar",
                     "translate": "Traducir",
                     "config": "Ajuste",
@@ -127,9 +126,7 @@
             },
             "recognize": {
                 "language": "Idioma de reconocimiento",
-                "hide_window": "Ocultar ventana de reconocimiento",
-                "title": "Ajustes de reconocimiento",
-                "close_on_blur": "Cerra ventana al perder el foco"
+                "title": "Ajustes de reconocimiento"
             },
             "hotkey": {
                 "is_register": "El atajo de teclado ya está registrado",
@@ -139,8 +136,7 @@
                 "input_translate": "Traducción de texto",
                 "label": "Atajo de teclado",
                 "selection_translate": "Traducción de selección",
-                "ocr_translate": "Traducción de captura de pantalla",
-                "ocr_recognize": "Reconocimiento de texto"
+                "ocr_translate": "Traducción de captura de pantalla"
             },
             "service": {
                 "translate": "Traducir",
@@ -269,7 +265,11 @@
         },
         "translate": {
             "copy": "Copiar",
-            "retry": "Intentar de nuevo"
+            "retry": "Intentar de nuevo",
+            "recognize": "Reconocer de nuevo",
+            "recognize_language": "Idioma de reconocimiento",
+            "show_image": "Mostrar captura",
+            "hide_image": "Ocultar captura"
         }
     }
 }

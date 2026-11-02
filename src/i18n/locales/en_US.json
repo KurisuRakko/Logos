@@ -83,7 +83,6 @@
                     "config": "Preference",
                     "translate": "Translate",
                     "disable": "Disable",
-                    "ocr_recognize": "Text Recognition",
                     "ocr_translate": "Screenshot Translation"
                 }
             },
@@ -135,16 +134,13 @@
                 "title": "Recognition Settings",
                 "language": "Recognition Language",
                 "delete_newline": "Auto Delete Newline",
-                "auto_copy": "Auto Copy",
-                "close_on_blur": "Close window when focus lost",
-                "hide_window": "Hide Recognition Window"
+                "auto_copy": "Auto Copy"
             },
             "hotkey": {
                 "label": "Hotkey",
                 "title": "Hotkey Settings",
                 "selection_translate": "Selection Translation",
                 "input_translate": "Text Translation",
-                "ocr_recognize": "Text Recognition",
                 "ocr_translate": "Screenshot Translation",
                 "is_register": "The hotkey is already registered",
                 "success": "Hotkey register success",
@@ -389,15 +385,11 @@
             "copy": "Copy",
             "retry": "Try again",
             "delete_newline": "Delete Newline",
-            "translate_back": "Translation back to the original"
-        },
-        "recognize": {
-            "recognize": "Recognize",
-            "translate": "Translate",
-            "copy_img": "Copy Image",
-            "copy_text": "Copy",
-            "delete_newline": "Delete Newline",
-            "delete_space": "Delete Space"
+            "translate_back": "Translation back to the original",
+            "recognize": "Recognize again",
+            "recognize_language": "Recognition language",
+            "show_image": "Show screenshot",
+            "hide_image": "Hide screenshot"
         }
     }
 }

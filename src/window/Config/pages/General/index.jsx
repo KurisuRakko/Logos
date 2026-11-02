@@ -377,7 +377,12 @@ export default function General() {
                         {trayClickEvent !== null && (
                             <Dropdown>
                                 <DropdownTrigger>
-                                    <Button variant='bordered'>{t(`config.general.event.${trayClickEvent}`)}</Button>
+                                    <Button variant='bordered'>
+                                        {/* the OCR recognize window was merged into OCR translate */}
+                                        {t(
+                                            `config.general.event.${trayClickEvent === 'ocr_recognize' ? 'ocr_translate' : trayClickEvent}`
+                                        )}
+                                    </Button>
                                 </DropdownTrigger>
                                 <DropdownMenu
                                     aria-label='tray click event'
@@ -387,9 +392,6 @@ export default function General() {
                                 >
                                     <DropdownItem key='config'>{t('config.general.event.config')}</DropdownItem>
                                     <DropdownItem key='translate'>{t('config.general.event.translate')}</DropdownItem>
-                                    <DropdownItem key='ocr_recognize'>
-                                        {t('config.general.event.ocr_recognize')}
-                                    </DropdownItem>
                                     <DropdownItem key='ocr_translate'>
                                         {t('config.general.event.ocr_translate')}
                                     </DropdownItem>

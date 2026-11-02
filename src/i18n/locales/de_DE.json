@@ -82,7 +82,6 @@
                     "config": "Einstellungen öffnen",
                     "translate": "Übersetzungsfenster öffnen",
                     "disable": "Deaktivieren",
-                    "ocr_recognize": "Texterkennung",
                     "ocr_translate": "Bildschirmfoto-Übersetzung"
                 }
             },
@@ -134,16 +133,13 @@
                 "title": "Texterkennung",
                 "language": "Erkennungssprache",
                 "delete_newline": "Automatisches Löschen von Zeilenumbrüchen",
-                "auto_copy": "Automatisch kopieren",
-                "close_on_blur": "Fenster beim Verlust des Fokus schließen",
-                "hide_window": "Erkennungsfenster ausblenden"
+                "auto_copy": "Automatisch kopieren"
             },
             "hotkey": {
                 "label": "Hotkey",
                 "title": "Tastenkombinationen",
                 "selection_translate": "Auswahl übersetzen",
                 "input_translate": "Eingabe übersetzen",
-                "ocr_recognize": "Texterkennung",
                 "ocr_translate": "Bildschirmfoto-Übersetzung",
                 "is_register": "Die Tastenkombination ist bereits registriert",
                 "success": "Tastenkombination erfolgreich registriert",
@@ -370,15 +366,11 @@
             "copy": "Kopieren",
             "retry": "Erneut versuchen",
             "delete_newline": "Zeilenumbruch löschen",
-            "translate_back": "In Ursprungssprache übersetzen"
-        },
-        "recognize": {
+            "translate_back": "In Ursprungssprache übersetzen",
             "recognize": "Erneut erkennen",
-            "translate": "Übersetzen",
-            "copy_img": "Bild kopieren",
-            "copy_text": "Kopieren",
-            "delete_newline": "Zeilenumbruch löschen",
-            "delete_space": "Leerzeichen löschen"
+            "recognize_language": "Erkennungssprache",
+            "show_image": "Screenshot anzeigen",
+            "hide_image": "Screenshot ausblenden"
         }
     }
 }
