@@ -96,13 +96,6 @@ export async function recognize(_, lang) {
             return result.trim();
         case 'Windows_NT':
             result = await invoke('system_ocr', { lang: windowsLangMap[lang] });
-            if (lang === Language.auto && (await detect(result)) === Language.zh_cn) {
-                result = result.replaceAll(' ', '');
-            } else {
-                if (lang === Language.zh_cn || lang === Language.zh_tw || lang === Language.ja) {
-                    result = result.replaceAll(' ', '');
-                }
-            }
             return result.trim();
     }
 }

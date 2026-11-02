@@ -1,5 +1,43 @@
 use dirs::cache_dir;
 
+#[cfg(any(target_os = "windows", test))]
+fn is_cjk(c: char) -> bool {
+    matches!(
+        c as u32,
+        0x2E80..=0x2FDF
+            | 0x3000..=0x30FF
+            | 0x3100..=0x318F
+            | 0x31C0..=0x32FF
+            | 0x3400..=0x4DBF
+            | 0x4E00..=0x9FFF
+            | 0xA960..=0xA97F
+            | 0xAC00..=0xD7FF
+            | 0xF900..=0xFAFF
+            | 0xFE10..=0xFE1F
+            | 0xFE30..=0xFE4F
+            | 0xFF00..=0xFFEF
+            | 0x20000..=0x2FA1F
+    )
+}
+
+#[cfg(any(target_os = "windows", test))]
+fn join_words(words: &[String]) -> String {
+    let mut text = String::new();
+    let mut prev = None;
+    for word in words {
+        if let (Some(last), Some(first)) = (prev, word.chars().next()) {
+            if !is_cjk(last) && !is_cjk(first) {
+                text.push(' ');
+            }
+        }
+        if let Some(last) = word.chars().last() {
+            prev = Some(last);
+        }
+        text.push_str(word);
+    }
+    text
+}
+
 // Build a SoftwareBitmap straight from the in-memory cut image (no file, no PNG decode)
 #[cfg(target_os = "windows")]
 fn bitmap_from_memory() -> Option<windows::Graphics::Imaging::SoftwareBitmap> {
@@ -63,6 +101,63 @@ static OCR_ENGINES: once_cell::sync::Lazy<
 > = once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
 
 #[cfg(target_os = "windows")]
+const OCR_LANGUAGE_PACK_ERROR: &str = "No Windows OCR language pack is installed. See: https://learn.microsoft.com/zh-cn/windows/powertoys/text-extractor#supported-languages";
+
+#[cfg(target_os = "windows")]
+fn map_ocr_error(e: windows::core::Error) -> String {
+    if e.to_string().contains("0x00000000") {
+        OCR_LANGUAGE_PACK_ERROR.to_string()
+    } else {
+        e.to_string()
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn create_auto_ocr_engine() -> Result<windows::Media::Ocr::OcrEngine, String> {
+    use windows::core::HSTRING;
+    use windows::Globalization::Language;
+    use windows::Media::Ocr::OcrEngine;
+
+    let mut tags = Vec::new();
+    match OcrEngine::AvailableRecognizerLanguages() {
+        Ok(languages) => {
+            for language in languages {
+                if let Ok(tag) = language.LanguageTag() {
+                    tags.push(tag.to_string_lossy());
+                }
+            }
+        }
+        Err(e) => return Err(map_ocr_error(e)),
+    }
+    if tags.is_empty() {
+        return Err(OCR_LANGUAGE_PACK_ERROR.to_string());
+    }
+
+    let app_language =
+        crate::config::get("app_language").and_then(|v| v.as_str().map(str::to_string));
+    let preferred = match app_language.as_deref() {
+        Some("zh_cn") => Some("zh-Hans"),
+        Some("zh_tw") => Some("zh-Hant"),
+        Some("ja") => Some("ja"),
+        Some("ko") => Some("ko"),
+        _ => None,
+    };
+    let preferred_tag = preferred.and_then(|p| tags.iter().find(|t| t.starts_with(p)));
+    let cjk_tag = ["zh-Hans", "zh-Hant", "ja", "ko"]
+        .into_iter()
+        .find_map(|p| tags.iter().find(|t| t.starts_with(p)));
+
+    match preferred_tag.or(cjk_tag) {
+        Some(tag) => Language::CreateLanguage(&HSTRING::from(tag.as_str()))
+            .map_err(map_ocr_error)
+            .and_then(|language| {
+                OcrEngine::TryCreateFromLanguage(&language).map_err(map_ocr_error)
+            }),
+        None => OcrEngine::TryCreateFromUserProfileLanguages().map_err(map_ocr_error),
+    }
+}
+
+#[cfg(target_os = "windows")]
 fn get_ocr_engine(lang: &str) -> Result<windows::Media::Ocr::OcrEngine, String> {
     use windows::core::HSTRING;
     use windows::Globalization::Language;
@@ -72,31 +167,18 @@ fn get_ocr_engine(lang: &str) -> Result<windows::Media::Ocr::OcrEngine, String> 
         return Ok(engine.clone());
     }
     let engine = match lang {
-        "auto" => OcrEngine::TryCreateFromUserProfileLanguages(),
-        _ => {
-            if let Ok(language) = Language::CreateLanguage(&HSTRING::from(lang)) {
-                OcrEngine::TryCreateFromLanguage(&language)
-            } else {
-                return Err("Language Error".to_string());
-            }
-        }
+        "auto" => create_auto_ocr_engine()?,
+        _ => match Language::CreateLanguage(&HSTRING::from(lang)) {
+            Ok(language) => OcrEngine::TryCreateFromLanguage(&language).map_err(map_ocr_error)?,
+            Err(_) => return Err("Language Error".to_string()),
+        },
     };
-    match engine {
-        Ok(v) => {
-            OCR_ENGINES
-                .lock()
-                .unwrap()
-                .insert(lang.to_string(), v.clone());
-            Ok(v)
-        }
-        Err(e) => {
-            if e.to_string().contains("0x00000000") {
-                Err("Language package not installed!\n\nSee: https://learn.microsoft.com/zh-cn/windows/powertoys/text-extractor#supported-languages".to_string())
-            } else {
-                Err(e.to_string())
-            }
-        }
-    }
+    // "auto" is cached under its own key; an app-language change applies from the next launch.
+    OCR_ENGINES
+        .lock()
+        .unwrap()
+        .insert(lang.to_string(), engine.clone());
+    Ok(engine)
 }
 
 #[tauri::command(async)]
@@ -109,12 +191,20 @@ pub fn system_ocr(app_handle: tauri::AppHandle, lang: &str) -> Result<String, St
         None => bitmap_from_file(&app_handle).map_err(|e| e.to_string())?,
     };
 
-    engine
+    let result = engine
         .RecognizeAsync(&bitmap)
         .and_then(|op| op.get())
-        .and_then(|result| result.Text())
-        .map(|text| text.to_string_lossy())
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    let mut lines = Vec::new();
+    for line in result.Lines().map_err(|e| e.to_string())? {
+        let mut words = Vec::new();
+        for word in line.Words().map_err(|e| e.to_string())? {
+            words.push(word.Text().map_err(|e| e.to_string())?.to_string_lossy());
+        }
+        lines.push(join_words(&words));
+    }
+    Ok(lines.join("\n"))
 }
 
 #[tauri::command(async)]
@@ -204,5 +294,29 @@ pub fn system_ocr(app_handle: tauri::AppHandle, lang: &str) -> Result<String, St
             }
         }
         Err(content)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn join_words_spaces_only_between_non_cjk_words() {
+        let words: Vec<String> = ["打", "回", "的", "Rakko", "Design", "标", "准"]
+            .iter()
+            .map(|word| word.to_string())
+            .collect();
+        assert_eq!(join_words(&words), "打回的Rakko Design标准");
+    }
+
+    #[test]
+    fn is_cjk_covers_han_kana_hangul_and_fullwidth_punctuation() {
+        for c in ['汉', 'あ', 'ア', '한', '。', '，'] {
+            assert!(is_cjk(c), "{c} should be CJK");
+        }
+        for c in ['A', 'z', ' ', '-'] {
+            assert!(!is_cjk(c), "{c} should not be CJK");
+        }
     }
 }
