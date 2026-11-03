@@ -20,7 +20,6 @@
                 },
                 "title": "一般設定",
                 "app_fallback_font": "フォールバックフォント",
-                "transparent": "透明効果",
                 "proxy": {
                     "title": "プロキシ",
                     "password": "パスワード",

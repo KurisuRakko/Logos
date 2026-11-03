@@ -299,7 +299,6 @@
                 "app_font": "Font",
                 "proxy_error": "Inserisci l'host e la porta",
                 "app_language": "Lingua dell'applicazione",
-                "transparent": "Effetto trasparente",
                 "title": "Impostazioni Generali",
                 "app_fallback_font": "Font di riserva"
             },

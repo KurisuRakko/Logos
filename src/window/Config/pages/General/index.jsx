@@ -29,7 +29,6 @@ export default function General() {
     const [appFont, setAppFont] = useConfig('app_font', 'default');
     const [appFallbackFont, setAppFallbackFont] = useConfig('app_fallback_font', 'default');
     const [appFontSize, setAppFontSize] = useConfig('app_font_size', 16);
-    const [transparent, setTransparent] = useConfig('transparent', true);
     const [devMode, setDevMode] = useConfig('dev_mode', false);
     const [trayClickEvent, setTrayClickEvent] = useConfig('tray_click_event', 'config');
     const [proxyEnable, setProxyEnable] = useConfig('proxy_enable', false);
@@ -404,17 +403,6 @@ export default function General() {
                                     <DropdownItem key='disable'>{t('config.general.event.disable')}</DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
-                        )}
-                    </div>
-                    <div className={`config-item ${osType === 'Darwin' && 'hidden'}`}>
-                        <h3>{t('config.general.transparent')}</h3>
-                        {transparent !== null && (
-                            <Switch
-                                isSelected={transparent}
-                                onValueChange={(v) => {
-                                    setTransparent(v);
-                                }}
-                            />
                         )}
                     </div>
                     <div className='config-item'>

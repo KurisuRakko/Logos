@@ -7,12 +7,10 @@ import { useTranslation } from 'react-i18next';
 import WindowControl from '../../components/WindowControl';
 import SideBar from './components/SideBar';
 import { osType } from '../../utils/env';
-import { useConfig } from '../../hooks';
 import routes from './routes';
 import './style.css';
 
 export default function Config() {
-    const [transparent] = useConfig('transparent', true);
     const { t } = useTranslation();
     const location = useLocation();
     const page = useRoutes(routes);
@@ -27,9 +25,7 @@ export default function Config() {
         <>
             <Card
                 shadow='none'
-                className={`${
-                    transparent ? 'bg-background/90' : 'bg-content1'
-                } float-left w-[230px] h-screen rounded-none ${
+                className={`bg-content1 float-left w-[230px] h-screen rounded-none ${
                     osType === 'Linux' && 'rounded-l-lg border-1'
                 } border-r-1 border-divider select-none cursor-default`}
             >

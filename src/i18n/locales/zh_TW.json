@@ -53,7 +53,6 @@
                     "dark": "深色主題",
                     "system": "系統主題"
                 },
-                "transparent": "透明效果",
                 "proxy": {
                     "title": "代理伺服器",
                     "host": "主機",

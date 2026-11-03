@@ -275,7 +275,6 @@
                 },
                 "proxy_error": "Veuillez compléter l'hôte et le port",
                 "app_language": "Langue d'affichage",
-                "transparent": "Effet de transparence",
                 "title": "Paramètres généraux",
                 "default_font": "Défaut",
                 "font_size": {
