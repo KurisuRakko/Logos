@@ -26,7 +26,7 @@ export default function Config() {
             <Card
                 shadow='none'
                 className={`bg-content1 float-left w-[230px] h-screen rounded-none ${
-                    osType === 'Linux' && 'rounded-l-lg border-1'
+                    osType === 'Linux' && 'border-1'
                 } border-r-1 border-divider select-none cursor-default`}
             >
                 <div className='h-[35px] p-[5px]'>
@@ -49,7 +49,7 @@ export default function Config() {
             </Card>
             <div
                 className={`bg-background ml-[230px] h-screen select-none cursor-default ${
-                    osType === 'Linux' && 'rounded-r-lg border-1 border-l-0 border-divider'
+                    osType === 'Linux' && 'border-1 border-l-0 border-divider'
                 }`}
             >
                 <div

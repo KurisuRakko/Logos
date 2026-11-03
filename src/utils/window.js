@@ -10,19 +10,10 @@ export const WINDOW_HIDE_EVENT = 'pot_window_hide';
 
 export const isResidentWindow = () => RESIDENT_WINDOWS.includes(appWindow.label);
 
-// Let the hide handlers' cleared content paint before the window hides, otherwise that last
-// stale frame is what shows on the next activation; capped in case frames are not delivered
-const nextFrame = () =>
-    new Promise((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(resolve));
-        setTimeout(resolve, 50);
-    });
-
 // Replacement for appWindow.close(): resident windows hide, other windows still close.
 export async function dismissWindow() {
     if (isResidentWindow()) {
         window.dispatchEvent(new Event(WINDOW_HIDE_EVENT));
-        await nextFrame();
         await appWindow.hide();
     } else {
         await appWindow.close();

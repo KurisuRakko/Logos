@@ -99,18 +99,42 @@ fn build_window(label: &str, title: &str) -> (Window, bool) {
                     .title_bar_style(tauri::TitleBarStyle::Overlay)
                     .hidden_title(true);
             }
+            // Opaque on purpose: on some WebView2 setups the transparent areas render black
             #[cfg(not(target_os = "macos"))]
             {
-                builder = builder.transparent(true).decorations(false);
+                builder = builder.decorations(false);
             }
             let window = builder.build().unwrap();
 
             if label != "screenshot" {
                 #[cfg(not(target_os = "linux"))]
                 set_shadow(&window, true).unwrap_or_default();
+                #[cfg(target_os = "windows")]
+                round_corners(&window);
             }
             let _ = window.current_monitor();
             (window, false)
+        }
+    }
+}
+
+// Windows 11 does not round undecorated windows by itself; earlier versions ignore the attribute
+#[cfg(target_os = "windows")]
+fn round_corners(window: &Window) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::Graphics::Dwm::{
+        DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND,
+    };
+
+    if let Ok(hwnd) = window.hwnd() {
+        let preference = DWMWCP_ROUND;
+        unsafe {
+            let _ = DwmSetWindowAttribute(
+                HWND(hwnd.0 as _),
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                &preference as *const _ as *const std::ffi::c_void,
+                std::mem::size_of_val(&preference) as u32,
+            );
         }
     }
 }
@@ -298,6 +322,12 @@ pub fn image_translate() {
 
 #[cfg(not(target_os = "macos"))]
 fn screenshot_window() -> Window {
+    // A visible translate window would end up in the capture
+    if let Some(translate) = APP.get().unwrap().get_window("translate") {
+        if translate.is_visible().unwrap_or(false) {
+            translate.hide().unwrap_or_default();
+        }
+    }
     let (window, exists) = build_window("screenshot", "Screenshot");
 
     // The monitor under the mouse; the page captures this one instead of asking currentMonitor(),

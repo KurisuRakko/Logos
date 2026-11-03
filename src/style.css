@@ -9,10 +9,13 @@
     padding: 0;
 }
 
-/* window frame of the transparent window: one step above the 6px cards */
+/* windows are opaque: the page background is the window background in both themes */
+html,
+body {
+    background: var(--color-paper);
+}
+
 html {
-    border-radius: 8px !important;
-    background: transparent !important;
     overflow: hidden;
     color: var(--color-neutral-9);
 }
@@ -73,16 +76,11 @@ html {
 }
 
 /* the translate window is reused and replays this on every activation; only its content moves,
-   scaling the opaque background would uncover the transparent window edge */
+   the window background stays put */
 .logos-window-enter > * {
     animation-name: logos-rise, logos-fade-in;
     animation-duration: var(--motion-spring-smooth-duration), var(--motion-duration-enter);
     animation-timing-function: var(--motion-spring-smooth), var(--motion-ease-standard);
-}
-
-/* set right before the window hides, so the frame shown on the next activation is empty */
-.logos-window-hidden > * {
-    opacity: 0;
 }
 
 /* settings page switch: critically damped page spring, no overshoot */

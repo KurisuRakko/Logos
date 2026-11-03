@@ -109,7 +109,8 @@ export default function Screenshot() {
                     }
                 }}
                 onMouseUp={async (e) => {
-                    appWindow.hide();
+                    // hide first and wait for it, so the translate window shown on success gets the focus
+                    await appWindow.hide();
                     setIsDown(false);
                     setIsMoved(false);
                     const imgWidth = imgRef.current.naturalWidth;
@@ -125,8 +126,9 @@ export default function Screenshot() {
                         await dismissWindow();
                     } else {
                         await invoke('cut_image', { left, top, width, height });
+                        // already hidden: only drop the image, a second hide would move the focus again
+                        setImgurl('');
                         await emit('success');
-                        await dismissWindow();
                     }
                 }}
             />

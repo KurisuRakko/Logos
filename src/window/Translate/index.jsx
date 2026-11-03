@@ -19,6 +19,11 @@ let blurTimeout = null;
 let resizeTimeout = null;
 let moveTimeout = null;
 let unlistenBlurPromise = null;
+// 被 window_reactivate / new_text 唤起的时间与这段时间内是否已重新抢过焦点
+let activatedAt = 0;
+let refocused = false;
+// 唤起后这段时间内的 blur 来自截图窗口隐藏等焦点切换，不是用户离开
+const ACTIVATE_BLUR_GRACE = 500;
 
 const listenBlur = () => {
     if (unlistenBlurPromise) {
@@ -28,6 +33,14 @@ const listenBlur = () => {
         if (appWindow.label === 'translate') {
             if (blurTimeout) {
                 clearTimeout(blurTimeout);
+            }
+            if (Date.now() - activatedAt < ACTIVATE_BLUR_GRACE) {
+                info('Ignore Blur');
+                if (!refocused) {
+                    refocused = true;
+                    void appWindow.setFocus();
+                }
+                return;
             }
             info('Blur');
             // 100ms后隐藏窗口，因为在 windows 下拖动窗口时会先切换成 blur 再立即切换成 focus
@@ -71,6 +84,18 @@ void listen('tauri://move', () => {
         clearTimeout(blurTimeout);
     }
 });
+
+// 唤起时先于组件内的监听记录时间；唤起前残留的 blur 计时也一并取消
+const markActivated = () => {
+    activatedAt = Date.now();
+    refocused = false;
+    if (blurTimeout) {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+    }
+};
+void listen('window_reactivate', markActivated);
+void listen('new_text', markActivated);
 
 const eventKeyOf = (key) => key.replaceAll('.', '_').replaceAll('@', ':');
 
@@ -149,19 +174,17 @@ export default function Translate() {
         };
     }, [alwaysOnTop]);
     // 窗口出现动画：每次从隐藏状态被唤起时重播，隐藏时复位
-    // 隐藏前先把内容设为透明：后端是先 show() 再发事件，中间那一帧显示的是窗口隐藏时的最后画面
     useEffect(() => {
         const root = rootRef.current;
         let hidden = false;
         const play = () => {
-            root.classList.remove('logos-window-enter', 'logos-window-hidden');
+            root.classList.remove('logos-window-enter');
             void root.offsetWidth;
             root.classList.add('logos-window-enter');
         };
         const onHide = () => {
             hidden = true;
             root.classList.remove('logos-window-enter');
-            root.classList.add('logos-window-hidden');
         };
         const onShow = () => {
             if (hidden) {
@@ -261,7 +284,7 @@ export default function Translate() {
     return (
         <div
             ref={rootRef}
-            className={`bg-background h-screen w-screen ${osType === 'Linux' && 'rounded-lg border-1 border-divider'}`}
+            className={`bg-background h-screen w-screen ${osType === 'Linux' && 'border-1 border-divider'}`}
         >
             <div
                 className='fixed top-[5px] left-[5px] right-[5px] h-[30px]'
