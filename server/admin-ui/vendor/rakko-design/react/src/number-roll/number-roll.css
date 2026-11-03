@@ -1,0 +1,37 @@
+/* NumberRoll：每位数字一个裁剪格子，新旧数字叠在同一个 grid 格里上下滚动。
+   字号、字重、颜色全部继承调用方；等宽数字避免滚动时宽度抖动。 */
+.rk-number-roll {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rk-number-roll__digit {
+  display: inline-grid;
+  height: 1.2em;
+  line-height: 1.2em;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.rk-number-roll__digit:empty::before {
+  content: attr(data-c);
+}
+
+.rk-number-roll__digit > * {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+/* 读屏用的完整文本：视觉隐藏 */
+.rk-number-roll__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

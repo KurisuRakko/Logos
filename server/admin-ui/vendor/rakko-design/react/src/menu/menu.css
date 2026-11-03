@@ -1,0 +1,138 @@
+/* rk-menu 浮层视觉：paper 底 + border 描边 + whisper 阴影（契约的 ring-or-whisper 深度），
+   圆角 8px 与 .motion-chips 等 showcase 控件同级。 */
+
+/* Positioner 是 Popup 的父层（Base UI 的定位元素）：层级写在它身上，
+   Popup 的 rk-* 类名仍然只属于 Popup，消费方的 className 也照旧追加在那里。 */
+.rk-menu__positioner {
+  z-index: var(--layer-popup);
+}
+
+.rk-menu {
+  box-sizing: border-box;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: 8px;
+  opacity: 1;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity var(--motion-duration-enter) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+/* 从触发点（Base UI Positioner 写的 --transform-origin）以 0.75 snappy 弹簧长出 + 淡入，
+   收起弹簧缩回 + 淡出；退场中不接点击（面板已看不见时不挡住下面的页面）。
+   移植自 RakkoNotes motion-overrides.css。LiftMenu 的 .rk-menu.rk-lift-menu 规则特异性更高，
+   它自己的起始缩放 / 退场曲线照旧生效。 */
+.rk-menu[data-starting-style],
+.rk-menu[data-ending-style] {
+  opacity: 0;
+  scale: 0.75;
+}
+
+.rk-menu[data-ending-style] {
+  pointer-events: none;
+  transition:
+    opacity var(--motion-duration-exit) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+.rk-menu__item {
+  position: relative;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: var(--color-neutral-9);
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--motion-duration-state)
+    var(--motion-ease-standard);
+}
+
+.rk-menu__item[data-highlighted] {
+  background: color-mix(
+    in srgb,
+    var(--color-neutral-10) var(--state-hover-opacity),
+    transparent
+  );
+}
+
+.rk-menu__item--danger {
+  color: var(--color-error);
+}
+
+.rk-menu__item--danger[data-highlighted] {
+  background: color-mix(
+    in srgb,
+    var(--color-error) var(--state-focus-opacity),
+    transparent
+  );
+}
+
+.rk-menu__item[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.rk-menu__separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border);
+}
+
+.rk-menu__group-label {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--color-neutral-7);
+}
+
+/* 子菜单入口：与 Item 同一行高，label 撑满，行尾 › 用次级色；
+   子菜单打开期间（data-popup-open）高亮层保持，指针移进子菜单也看得出从哪一项展开。 */
+.rk-menu__submenu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rk-menu__submenu-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rk-menu__submenu-chevron {
+  flex: none;
+  margin-inline-end: -4px;
+  color: var(--color-neutral-6);
+}
+
+.rk-menu__submenu-chevron:dir(rtl) {
+  scale: -1 1;
+}
+
+.rk-menu__item[data-popup-open] {
+  background: color-mix(
+    in srgb,
+    var(--color-neutral-10) var(--state-hover-opacity),
+    transparent
+  );
+}
+
+/* 子菜单从侧面展开：不做纵向位移，缩放从 --transform-origin（父菜单那一侧）长出。 */
+.rk-menu--submenu[data-starting-style],
+.rk-menu--submenu[data-ending-style] {
+  translate: none;
+}
+
+/* 减少动态效果：只留短淡入淡出，不缩放。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-menu,
+  .rk-menu[data-starting-style],
+  .rk-menu[data-ending-style] {
+    scale: none;
+    transition: opacity var(--motion-duration-state) var(--motion-ease-standard);
+  }
+
+  .rk-menu__item {
+    transition-duration: 1ms;
+  }
+}

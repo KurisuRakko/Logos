@@ -1,0 +1,30 @@
+/* rk-filter-chip 视觉移植自 showcase motion.css 的 .motion-chip：
+   paper 底 + border 描边；选中（aria-pressed）时 accent 边框/淡底/字色同时变化。 */
+
+.rk-filter-chip {
+  appearance: none;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-paper);
+  color: var(--color-neutral-7);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color var(--motion-duration-state) var(--motion-ease-standard),
+    border-color var(--motion-duration-state) var(--motion-ease-standard),
+    background-color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-filter-chip[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--color-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-paper));
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-filter-chip {
+    transition-duration: 1ms;
+  }
+}

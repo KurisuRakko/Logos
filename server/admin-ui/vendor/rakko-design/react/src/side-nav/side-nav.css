@@ -1,0 +1,129 @@
+/* rk-side-nav：桌面端左侧常驻导航，建立在 Tabs 之上（tablist 语义、键盘与
+   指示条都来自 rk-tabs，这里只做侧栏布局与折叠窄栏）。
+   材质是纸底 + 右侧发丝线，**不取** data-glass="chrome"：glass.md 的表面预算按
+   同时可见的 backdrop 表面数计（head-count），常驻 chrome 的额度是「one bar」，
+   顶栏 + 全高侧栏会是两块常驻 backdrop，超出预算；侧栏退到不透明纸底，
+   顶栏保留唯一的常驻玻璃层。依据见 docs/2026-09-20-side-nav.md。
+   Root 是 position: sticky 的列，布局前提（页面走根滚动、祖先不能是 overflow
+   滚动容器、top 与顶栏真实高度一致、两栏那一层要 display: flex、直接父级要比
+   nav 高）写在 react/README.md 的 SideNav 一节——改这里的定位前先读那四条。
+   只过渡 width / padding / 指示条，reduced-motion 全部关掉。
+   下面的覆盖规则都带 .rk-side-nav 前缀：.rk-tabs / .rk-tab / .rk-tabs__indicator
+   是同优先级的单类选择器，加一层祖先锁定覆盖关系，不依赖 styles.css 的拼接顺序。 */
+
+.rk-side-nav {
+  position: sticky;
+  top: var(--rk-side-nav-top, 56px);
+  flex: none;
+  box-sizing: border-box;
+  width: var(--rk-side-nav-width, 220px);
+  height: calc(100dvh - var(--rk-side-nav-top, 56px));
+  overflow: hidden auto;
+  padding: 12px 8px;
+  background: var(--color-paper);
+  border-right: 1px solid var(--color-border);
+  transition: width var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+.rk-side-nav[data-collapsed] {
+  width: var(--rk-side-nav-width-collapsed, 64px);
+}
+
+.rk-side-nav .rk-side-nav__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* 竖排列表没有底边线可言，rk-tabs 的 border-bottom 在这里去掉 */
+  border-bottom: 0;
+}
+
+.rk-side-nav .rk-side-nav__item {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-neutral-7);
+  /* padding 一起过渡：折叠时 item 内边距归零，只动宽度会让图标先跳到行中央
+     再滑回中线；hover / pressed 仍由 state-layer.css 的 data-ripple 承担。 */
+  transition:
+    color var(--motion-duration-state) var(--motion-ease-standard),
+    padding var(--motion-duration-enter) var(--motion-ease-standard);
+}
+
+/* accent 只出现在选中态的图文与左侧指示条上 */
+.rk-side-nav .rk-side-nav__item[aria-selected='true'] {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.rk-side-nav__icon {
+  display: block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  line-height: 0;
+}
+
+.rk-side-nav__icon > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 折叠态：只剩图标的窄栏，图标居中；label 视觉隐藏但留在 DOM 里，
+   可访问名称不丢（悬停提示由 Item 的 title 属性提供）。 */
+.rk-side-nav[data-collapsed] .rk-side-nav__item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.rk-side-nav[data-collapsed] .rk-side-nav__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 指示条移到左边：宽 2px、竖向滑动（rk-tabs__indicator 默认在底边横滑）。
+   竖向 tablist 下 Base UI 仍写同一组变量，--active-tab-top / -height 就是
+   当前 tab 相对 tablist 的顶边与高度。 */
+.rk-side-nav .rk-side-nav__indicator {
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 2px;
+  height: var(--active-tab-height);
+  translate: 0 var(--active-tab-top);
+  border-radius: 1px;
+  background: var(--color-accent);
+  transition-property: translate, height;
+  transition-duration: var(--motion-duration-enter);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-side-nav {
+    transition: none;
+  }
+
+  .rk-side-nav .rk-side-nav__item {
+    transition-duration: 1ms;
+  }
+
+  .rk-side-nav .rk-side-nav__indicator {
+    transition: none;
+  }
+}

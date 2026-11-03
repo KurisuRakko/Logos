@@ -156,6 +156,21 @@
                 "add_service": "新增服務",
                 "test_failed": "測試失敗"
             },
+            "account": {
+                "label": "Logos 帳號",
+                "title": "Logos 帳號",
+                "user": "目前帳號",
+                "unknown_user": "未知使用者",
+                "not_logged_in": "尚未登入",
+                "login": "登入",
+                "waiting_browser": "等待瀏覽器完成登入",
+                "login_description": "登入後可使用 Logos AI 翻譯服務。點擊登入將在系統瀏覽器中開啟登入頁面，完成後返回本視窗。",
+                "logout": "登出",
+                "quota": "本月額度",
+                "remaining": "剩餘比例",
+                "refresh": "重新整理",
+                "resets_at": "額度將於 {{date}} 重設。"
+            },
             "about": {
                 "label": "關於",
                 "title": "關於應用程式",
@@ -303,6 +318,10 @@
                     "prompt_description": "透過自定義 Prompt，您可以自定義 Gemini Pro 的行為。$text $from $to $detect 將被替換為待翻譯的文字、來源語言、目標語言和偵測到的語言。",
                     "stream": "串流輸出",
                     "add": "新增 Prompt"
+                },
+                "logos_ai": {
+                    "title": "Logos AI",
+                    "description": "Logos AI 無需填寫金鑰，使用前須先在設定的「Logos 帳號」頁面登入。"
                 }
             },
             "recognize": {
@@ -387,6 +406,23 @@
             "recognize_language": "辨識語言",
             "show_image": "顯示截圖",
             "hide_image": "隱藏截圖"
+        },
+        "logos_account": {
+            "error": {
+                "not_logged_in": "尚未登入 Logos 帳號，請在設定的「Logos 帳號」頁面登入後再使用 Logos AI。",
+                "unauthorized": "Logos 帳號登入狀態已失效，請重新登入。",
+                "forbidden": "目前帳號無權使用 Logos AI。",
+                "user_disabled": "目前帳號的 Logos AI 使用權限已被停用，請聯絡管理員。",
+                "quota_exhausted": "本月額度已用完，將於 {{date}} 重設。",
+                "quota_exhausted_no_date": "本月額度已用完，將於下月初重設。",
+                "global_quota_exhausted": "Logos AI 本月服務總額度已用完，暫時無法提供翻譯。",
+                "rate_limited": "請求過於頻繁，請稍後再試。",
+                "text_too_long": "原文超過 5000 字元的上限，請縮短後重試。",
+                "upstream_error": "翻譯服務暫時無法使用，請稍後重試。",
+                "stream_interrupted": "翻譯結果不完整：與伺服器的連線意外中斷，請重試。",
+                "network": "無法連線 Logos AI 服務：{{detail}}",
+                "http": "Logos AI 服務傳回錯誤（HTTP {{status}}）。"
+            }
         }
     }
 }

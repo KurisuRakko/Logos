@@ -1,0 +1,65 @@
+/* rk-morph-sheet：卡片原地展开成的 sheet。几何（顶边 44px、最宽 720px、圆角 22px）
+   与 morph-sheet.tsx 的常量同步；裁剪框和位移由组件用 WAAPI 驱动，这里只放静态布局。 */
+
+.rk-morph-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-overlay);
+}
+
+.rk-morph-sheet__dim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / var(--glass-scrim-opacity));
+  opacity: 0;
+}
+
+/* 整个视口大小，用 clip-path 裁成 sheet；裁剪同时决定可点区域，上方那条会落到 dim 上 */
+.rk-morph-sheet__panel {
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+}
+
+.rk-morph-sheet__content {
+  position: absolute;
+  top: 44px;
+  bottom: 0;
+  left: max(0px, calc((100% - 720px) / 2));
+  right: max(0px, calc((100% - 720px) / 2));
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.rk-morph-sheet__bar {
+  position: relative;
+  flex: none;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rk-morph-sheet__handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--color-neutral-5);
+}
+
+.rk-morph-sheet__close {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  translate: 0 -50%;
+}
+
+.rk-morph-sheet__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+}

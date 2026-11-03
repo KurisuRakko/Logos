@@ -1,0 +1,232 @@
+/* rk-button / rk-icon-button 视觉移植自 showcase foundation.css 的 .btn / .icon-btn。 */
+
+.rk-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition:
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    border-color var(--motion-duration-state) var(--motion-ease-standard),
+    color var(--motion-duration-state) var(--motion-ease-standard),
+    transform var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* 禁用时不得出现 hover / active 视觉变化：悬停与按下规则都加 :not(:disabled) 守卫。 */
+.rk-button--primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.rk-button--primary {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.rk-button--secondary {
+  background: transparent;
+  color: var(--color-neutral-9);
+  border-color: var(--color-border);
+}
+
+.rk-button--secondary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-neutral-10) 3%, transparent);
+  border-color: color-mix(in srgb, var(--color-neutral-10) 18%, transparent);
+}
+
+.rk-button--ghost {
+  background: transparent;
+  color: var(--color-neutral-7);
+}
+
+.rk-button--ghost:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-neutral-10) 4%, transparent);
+  color: var(--color-neutral-9);
+}
+
+/* Danger：与 primary 相同的半透明配方，落在 error 上（无实心红底白字）。 */
+.rk-button--danger {
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+
+.rk-button--danger:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-error) 45%, transparent);
+}
+
+/* Icon Button：移植 .icon-btn（rounded-lg、方形、克制）。 */
+.rk-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-neutral-9);
+  line-height: 0;
+  transition:
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    border-color var(--motion-duration-state) var(--motion-ease-standard),
+    color var(--motion-duration-state) var(--motion-ease-standard),
+    transform var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-icon-button:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-neutral-10) 2%, transparent);
+  border-color: color-mix(in srgb, var(--color-neutral-10) 15%, transparent);
+}
+
+.rk-icon-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* 深色主题沿用 showcase 的暗底 hover 配方（foundation.css [data-theme='dark']）。 */
+[data-theme='dark'] .rk-icon-button:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 切换态（如书签按钮）移植 .motion-bookmark-button[aria-pressed='true']。 */
+.rk-icon-button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--color-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+}
+
+/* Plain（iOS 导航栏 / 工具栏的按钮）：强调色文字、无底无框、命中区 44×44。取值移植自 RakkoNotes 的 ToolbarButton.css。
+   不带 data-ripple（没有状态层与墨点），按下立即变淡、轻轻缩到 0.92（snappy 弹簧），松开按状态时长淡回、
+   弹簧回到原大小；不做常规按钮的下沉位移。缩放用独立的 scale 属性，中途松开从当前大小接着回。
+   这些规则写在常规按钮之后：:active / :hover 与上面同特异性，靠先后顺序压过。 */
+.rk-button--plain {
+  min-width: 44px;
+  min-height: 44px;
+  gap: 2px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: var(--text-copy-16);
+  font-weight: 400;
+  line-height: 1.25;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 带前置图标（返回键「‹ 文件夹」）：chevron 贴左，文字紧跟 */
+.rk-button--plain[data-has-icon] {
+  padding-left: 2px;
+}
+
+.rk-button[data-emphasized] {
+  font-weight: 600;
+}
+
+.rk-button--plain[data-emphasized] {
+  font-weight: 500;
+}
+
+/* 有图标或 plain 时文字包在 label 里，单行省略（返回键的上一页标题可能很长） */
+.rk-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rk-icon-button--plain {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--color-accent);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rk-button--plain,
+.rk-icon-button--plain {
+  transition:
+    opacity var(--motion-duration-state) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy),
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-button--plain:not(:disabled):hover,
+.rk-icon-button--plain:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+}
+
+[data-theme='dark'] .rk-button--plain:not(:disabled):hover,
+[data-theme='dark'] .rk-icon-button--plain:not(:disabled):hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.rk-button--plain[aria-pressed='true'],
+.rk-icon-button--plain[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
+.rk-button--plain:disabled,
+.rk-icon-button--plain:disabled {
+  color: var(--color-neutral-5);
+  cursor: default;
+}
+
+.rk-button--plain:not(:disabled):active,
+.rk-icon-button--plain:not(:disabled):active {
+  opacity: 0.35;
+  transform: none;
+  transition:
+    opacity 0s,
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy),
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+/* scale 单独一条、选择器叠一次类名：和上面带 transform 的规则同选择器时，
+   消费方构建里的 CSS 压缩会把两条合并，再把 scale 吞掉。 */
+.rk-button--plain.rk-button--plain:not(:disabled):active,
+.rk-icon-button--plain.rk-icon-button--plain:not(:disabled):active {
+  scale: 0.92;
+}
+
+/* 没有 data-ripple 就没有状态层的焦点环，这里补上同一种 */
+.rk-button--plain:focus-visible,
+.rk-icon-button--plain:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-button:active,
+  .rk-icon-button:active {
+    transform: none;
+  }
+
+  .rk-button--plain.rk-button--plain:not(:disabled):active,
+  .rk-icon-button--plain.rk-icon-button--plain:not(:disabled):active {
+    scale: none;
+  }
+}

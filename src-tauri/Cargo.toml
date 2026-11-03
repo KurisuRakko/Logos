@@ -34,6 +34,11 @@ whatlang = "0.16"
 thiserror = "1.0"
 font-kit = "0.14.2"
 image = "0.25.4"
+sha2 = "0.10"
+rand = "0.8"
+url = "2"
+tokio = { version = "1", features = ["sync"] }
+keyring = { version = "3", features = ["windows-native", "apple-native", "linux-native"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 macos-accessibility-client = "0.0.1"

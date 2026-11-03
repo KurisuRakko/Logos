@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { PiTextboxFill } from 'react-icons/pi';
 import { MdKeyboardAlt } from 'react-icons/md';
 import { MdExtension } from 'react-icons/md';
+import { MdAccountCircle } from 'react-icons/md';
 import { Button } from '@nextui-org/react';
 import React from 'react';
 
@@ -84,6 +85,19 @@ export default function SideBar() {
                 startContent={<MdExtension className='text-[24px]' />}
             >
                 <div className='w-full'>{t('config.service.label')}</div>
+            </Button>
+            <Button
+                fullWidth
+                data-press
+                size='lg'
+                variant={setStyle('/account')}
+                className='mb-[5px]'
+                onPress={() => {
+                    navigate('/account');
+                }}
+                startContent={<MdAccountCircle className='text-[24px]' />}
+            >
+                <div className='w-full'>{t('config.account.label')}</div>
             </Button>
             <Button
                 fullWidth

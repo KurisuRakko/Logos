@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    // vite.config.ts 用带 .ts 后缀的相对导入（Vite 原生配置加载要求显式后缀）
+    "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true,
+    /*
+     * 与 vite.config.ts 的 resolve.alias 一一对应（tsc 不读 Vite 配置，两边必须同时改）。
+     * vendor/rakko-design/ 只能由 scripts/sync-design.sh 生成。
+     */
+    "paths": {
+      "@rakko/react/styles.css": ["./vendor/rakko-design/react/src/styles.css"],
+      "@rakko/react": ["./vendor/rakko-design/react/src/index.ts"],
+      "@rakko/design-system/tokens.css": ["./vendor/rakko-design/tokens.generated.css"],
+      "@rakko/design-system/ripple": ["./vendor/rakko-design/design-system/src/ripple"],
+      "@rakko/design-system/context-action": ["./vendor/rakko-design/design-system/src/context-action"]
+    }
+  },
+  "include": ["src", "mock", "vite.config.ts", "vendor/rakko-design/react/src"]
+}

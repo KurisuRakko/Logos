@@ -6,6 +6,7 @@ mod config;
 mod error;
 mod hotkey;
 mod lang_detect;
+mod logos_account;
 mod screenshot;
 mod system_ocr;
 mod tray;
@@ -15,6 +16,7 @@ use cmd::*;
 use config::*;
 use hotkey::*;
 use lang_detect::*;
+use logos_account::*;
 use log::info;
 use once_cell::sync::OnceCell;
 use screenshot::{get_screenshot_target, screenshot};
@@ -113,7 +115,12 @@ fn main() {
             screenshot,
             get_screenshot_target,
             lang_detect,
-            font_list
+            font_list,
+            logos_account_login,
+            logos_account_cancel_login,
+            logos_account_token,
+            logos_account_status,
+            logos_account_logout
         ])
         .on_system_tray_event(tray_event_handler)
         .build(tauri::generate_context!())

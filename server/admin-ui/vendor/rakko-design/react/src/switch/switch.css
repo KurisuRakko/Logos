@@ -1,0 +1,70 @@
+/* rk-switch 视觉移植自 showcase motion.css 的 .motion-switch__control/track/thumb；
+   选中态用 Base UI 的 [data-checked]（Root 上），不用 :checked。 */
+
+.rk-switch {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.rk-switch__track {
+  width: 34px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--color-neutral-4);
+  transition: background-color var(--motion-duration-state)
+    var(--motion-ease-standard);
+}
+
+.rk-switch[data-checked] .rk-switch__track {
+  background: color-mix(in srgb, var(--color-accent) 35%, var(--color-neutral-3));
+}
+
+.rk-switch__thumb {
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+  /* 拨动：拇指走带过冲的 --motion-ease-pop（冲过头再落位），配 smooth 弹簧时长；
+     按住时横向拉长、纵向压扁（像捏住），松开弹回，配 snappy 时长。缩放用独立的 scale 属性，与 transform 互不覆盖。
+     移植自 RakkoNotes settings.css（041d405）；轨道颜色仍走状态时长。 */
+  transition:
+    transform var(--motion-spring-smooth-duration) var(--motion-ease-pop),
+    scale var(--motion-spring-snappy-duration) var(--motion-ease-pop),
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    border-color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-switch[data-checked] .rk-switch__thumb {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: var(--color-accent);
+  transform: translateX(20px);
+}
+
+/* scale 单独一条（选择器叠一次类名，不与上面带 transform 的规则同选择器）：
+   和 transform 落进同一条规则时，消费方构建里的 CSS 压缩会把 scale 吞掉。 */
+.rk-switch:not([data-disabled]):not([data-readonly]):active .rk-switch__thumb.rk-switch__thumb {
+  scale: 1.3 0.88;
+}
+
+/* 焦点环由 state-layer 的 [data-ripple]:focus-visible 提供（45% accent outline）。 */
+
+/* 减少动态效果：过渡 1ms（瞬时到位，不过冲）；按住压扁同 RakkoNotes 保留为瞬时的形变提示。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-switch__track,
+  .rk-switch__thumb {
+    transition-duration: 1ms;
+  }
+}

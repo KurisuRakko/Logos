@@ -1,0 +1,22 @@
+/* rk-empty-state：列表的空状态 / 出错提示。与列表互换的淡出淡入在 useSwapPresence（WAAPI），这里只有挂上时的淡入。
+   --rk-empty-state-offset 是离容器顶的距离（RakkoNotes 用 28vh，让提示落在列表区的视觉中线偏上） */
+.rk-empty-state {
+  margin: var(--rk-empty-state-offset, 28vh) auto 0;
+  padding: 0 16px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--color-neutral-7);
+  animation: rk-empty-state-in var(--motion-duration-enter) var(--motion-ease-standard) both;
+}
+
+@keyframes rk-empty-state-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-empty-state {
+    animation: none;
+  }
+}

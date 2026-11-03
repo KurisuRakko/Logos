@@ -1,0 +1,75 @@
+/* rk-bottom-nav：移动端底部导航，建立在 Tabs 之上（tablist 语义、键盘与
+   指示条都来自 rk-tabs，这里只做底栏布局）。材质取 glass.css 的
+   data-glass="chrome" 常显，不加 data-reveal；chrome 的底边发丝线翻到顶边
+   （glass.md 允许改 box-shadow）。取值移植自 RakkoBudget 的 .rb-bottom-nav*，
+   只做契约化改名，视觉不变。
+   下面的覆盖规则都带 .rk-bottom-nav 前缀：.rk-tabs / .rk-tab / .rk-tabs__indicator
+   是同优先级的单类选择器，加一层祖先锁定覆盖关系，不依赖 styles.css 的拼接顺序。 */
+
+.rk-bottom-nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: var(--layer-chrome);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -1px 0 var(--color-border);
+}
+
+/* 玻璃条三边贴满，里层列表与页面内容同宽居中：
+   桌面上 4 个 tab 摊在整屏宽会散得看不出是一组。 */
+.rk-bottom-nav .rk-bottom-nav__list {
+  position: relative;
+  display: flex;
+  max-width: var(--rk-bottom-nav-max-width, 640px);
+  margin: 0 auto;
+  /* 底边线已由 Root 的发丝线取代 */
+  border-bottom: 0;
+}
+
+.rk-bottom-nav .rk-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 10px;
+  /* 有 Home 横条时（safe-area-inset-bottom > 0）下方已有 34px 安全区，文字下面再留 10px 就比
+     iOS 原生标签栏（49 + 34）高出一截、整条底栏显得浮着；这里随安全区把这 10px 收掉，没有横条时照旧。 */
+  padding-bottom: max(0px, calc(10px - env(safe-area-inset-bottom)));
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-neutral-7);
+}
+
+/* accent 只出现在选中态的图文与指示条上 */
+.rk-bottom-nav .rk-bottom-nav__item[aria-selected='true'] {
+  color: var(--color-accent);
+}
+
+.rk-bottom-nav__icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  line-height: 0;
+}
+
+.rk-bottom-nav__icon > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 指示条移到顶边（rk-tabs__indicator 默认在底边 -1px）；过渡仍只动 translate/width。 */
+.rk-bottom-nav .rk-bottom-nav__indicator {
+  top: 0;
+  bottom: auto;
+  height: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-bottom-nav .rk-bottom-nav__item {
+    transition-duration: 1ms;
+  }
+
+  .rk-bottom-nav .rk-bottom-nav__indicator {
+    transition: none;
+  }
+}

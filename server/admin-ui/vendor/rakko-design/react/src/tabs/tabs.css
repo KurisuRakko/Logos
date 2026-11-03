@@ -1,0 +1,59 @@
+/* rk-tabs 视觉移植自 showcase motion.css 的 .motion-tabs/.motion-tab/__indicator/tabpanel。
+   List 从固定 repeat(3, 1fr) 改为 flex，Tab 均分宽度；
+   Indicator 用 Base UI 提供的 --active-tab-* 变量定位，只过渡 translate/width。 */
+
+.rk-tabs {
+  position: relative;
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rk-tab {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--color-neutral-7);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+.rk-tab[aria-selected='true'] {
+  color: var(--color-accent);
+}
+
+.rk-tabs__indicator {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-accent);
+  translate: var(--active-tab-left);
+  width: var(--active-tab-width);
+  transition-property: translate, width;
+  transition-duration: var(--motion-duration-enter);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.rk-tabpanel {
+  min-height: 66px;
+  margin-top: 16px;
+  color: var(--color-neutral-8);
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-tab {
+    transition-duration: 1ms;
+  }
+
+  .rk-tabs__indicator {
+    transition: none;
+  }
+}

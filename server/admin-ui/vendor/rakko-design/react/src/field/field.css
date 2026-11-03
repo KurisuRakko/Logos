@@ -1,0 +1,136 @@
+/* rk-field：文本输入视觉移植自 showcase foundation.css 的 .field 系列。
+   取值来源为消费方 showcase 的 --field-*（此处改名 --rk-field-* 避免与页面内
+   仍在使用的 --field-* 冲突）；焦点指示是 accent 描边从底部中点沿两侧合围。 */
+
+@property --rk-field-sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.rk-field {
+  display: grid;
+  gap: 8px;
+}
+
+.rk-field__label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-neutral-7);
+}
+
+.rk-field__box {
+  --rk-field-bg: var(--color-paper);
+  --rk-field-border: rgba(0, 0, 0, 0.05);
+  --rk-field-shadow: 0 1px 1px rgba(0, 0, 0, 0.01),
+    0 3px 10px rgba(0, 0, 0, 0.02);
+  --rk-field-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-accent) 3%, transparent) 0%,
+    transparent 26%
+  );
+  --rk-field-border-focus: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --rk-field-ring: 0 0 0 3px color-mix(in srgb, var(--color-accent) 10%, transparent);
+
+  position: relative;
+  display: flex;
+  border: 1px solid var(--rk-field-border);
+  border-radius: 12px;
+  background: var(--rk-field-bg);
+  background-image: var(--rk-field-gradient);
+  box-shadow: var(--rk-field-shadow);
+  transition:
+    border-color var(--motion-duration-state) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+[data-theme='dark'] .rk-field__box {
+  --rk-field-bg: var(--color-neutral-2);
+  --rk-field-border: rgba(255, 255, 255, 0.08);
+  --rk-field-shadow: 0 1px 1px rgba(0, 0, 0, 0.18),
+    0 4px 16px rgba(0, 0, 0, 0.16);
+  --rk-field-gradient: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-accent) 7%, transparent) 0%,
+    transparent 26%
+  );
+  --rk-field-border-focus: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --rk-field-ring: 0 0 0 3px color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.rk-field__box:focus-within {
+  border-color: var(--rk-field-border-focus);
+  box-shadow: var(--rk-field-ring);
+}
+
+/* 聚焦指示：2px accent 描边覆盖在 1px 边框上，用 conic 遮罩从底部中点（180deg）向两侧同时展开。 */
+.rk-field__box::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid var(--color-accent);
+  pointer-events: none;
+  --rk-field-sweep: 0deg;
+  -webkit-mask: conic-gradient(
+    from calc(180deg - var(--rk-field-sweep)),
+    #000 calc(var(--rk-field-sweep) * 2),
+    transparent 0
+  );
+  mask: conic-gradient(
+    from calc(180deg - var(--rk-field-sweep)),
+    #000 calc(var(--rk-field-sweep) * 2),
+    transparent 0
+  );
+  transition: --rk-field-sweep var(--motion-duration-exit)
+    var(--motion-ease-standard);
+}
+
+.rk-field__box:focus-within::after {
+  --rk-field-sweep: 180deg;
+  transition-duration: var(--motion-duration-enter);
+}
+
+.rk-field__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--color-neutral-8);
+}
+
+.rk-field__input::placeholder {
+  color: var(--color-neutral-5);
+}
+
+.rk-field__box textarea.rk-field__input {
+  resize: vertical;
+}
+
+.rk-field__description {
+  font-size: 13px;
+  color: var(--color-neutral-7);
+}
+
+.rk-field__error {
+  font-size: 13px;
+  color: var(--color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-field__box {
+    transition-duration: 1ms;
+  }
+
+  .rk-field__box::after {
+    transition: none;
+  }
+}

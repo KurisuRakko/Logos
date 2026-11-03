@@ -1,0 +1,42 @@
+/* rk-progress 视觉移植自 showcase motion.css 的 .motion-progress*：
+   4px 线性轨道；Label 与 Value 同行（grid 两列），Track 独占一行。
+   Indicator 宽度由 Base UI 内联设置（与 aria-valuenow 同步）。 */
+
+.rk-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.rk-progress__label {
+  color: var(--color-neutral-9);
+}
+
+.rk-progress__value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-neutral-7);
+  font-variant-numeric: tabular-nums;
+}
+
+.rk-progress__track {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-neutral-4);
+}
+
+.rk-progress__indicator {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width var(--motion-duration-state) var(--motion-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-progress__indicator {
+    transition: none;
+  }
+}

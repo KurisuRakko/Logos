@@ -1,0 +1,141 @@
+/* rk-list：iOS inset grouped 列表。组标题小号次要色在卡片外上方，卡片圆角 12px，
+   分隔线从文字左缘画到行尾，卡片里最后一行不画。SwipeRow 包着的行也由本文件画分隔线。 */
+
+/* 卡片底色 = neutral-2（tokens.md 的 Card surface）；定义在组上，调用方可在组或更外层覆盖。
+   SwipeRow 的滑动层也读 --rk-list-bg，滑开时与卡片同色。 */
+.rk-list-group {
+  --rk-list-bg: var(--color-neutral-2);
+}
+
+.rk-list-group + .rk-list-group {
+  margin-top: 22px;
+}
+
+.rk-list-group__header {
+  margin: 0 0 6px;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 1.54;
+  font-weight: 400;
+  color: var(--color-neutral-7);
+}
+
+.rk-list-group__card {
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--rk-list-bg);
+}
+
+.rk-list-group__footer {
+  margin: 6px 0 0;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 1.54;
+  color: var(--color-neutral-7);
+}
+
+/* ------------------------------------------------------------------ 行 */
+
+.rk-list-row {
+  position: relative;
+  box-sizing: border-box;
+  color: var(--color-neutral-9);
+}
+
+/* 排版落在「承载内容的那一层」：不可点时是行本身，可点时是内层 button。 */
+.rk-list-row:not([data-pressable]),
+.rk-list-row__surface {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 11px 16px;
+}
+
+.rk-list-row__surface {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* 卡片 overflow: hidden 会裁掉外扩的焦点环：改为内描。 */
+.rk-list-row__surface:focus-visible {
+  outline-offset: -2px;
+}
+
+.rk-list-row__leading {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--rk-list-leading-size, 24px);
+  color: var(--color-accent);
+}
+
+.rk-list-row__body {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.rk-list-row__body[data-single-line] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rk-list-row__detail {
+  flex: none;
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--color-neutral-7);
+}
+
+.rk-list-row__chevron {
+  flex: none;
+  margin-left: -6px;
+  margin-right: -4px;
+  color: var(--color-neutral-6);
+}
+
+/* ------------------------------------------------------------------ 分隔线 */
+
+/* 有图标时分隔线从文字左缘开始：左内边距 + 图标位 + 间距。 */
+.rk-list-row[data-leading],
+.rk-swipe-row__content:has(> .rk-list-row[data-leading]) {
+  --rk-list-separator-inset: calc(16px + var(--rk-list-leading-size, 24px) + 12px);
+}
+
+/* 普通行画在自己身上；SwipeRow 画在滑动层上（随内容一起滑），里面的 List.Row 不再重复画。
+   滑动层需是定位容器（SwipeRow 的 relative / transform 即满足）。 */
+.rk-list-group__card > .rk-list-row::after,
+.rk-list-group__card > .rk-swipe-row .rk-swipe-row__content::after {
+  content: '';
+  position: absolute;
+  left: var(--rk-list-separator-inset, 16px);
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+
+.rk-list-group__card > .rk-list-row:last-child::after,
+.rk-list-group__card > .rk-swipe-row:last-child .rk-swipe-row__content::after {
+  display: none;
+}
+
+/* 本文件没有自有动画；按压高亮来自 state-layer.css（其自带 reduced-motion 回退），这里再兜一次。 */
+@media (prefers-reduced-motion: reduce) {
+  .rk-list-row__surface::before {
+    transition-duration: 1ms;
+  }
+}

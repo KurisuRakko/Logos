@@ -1,0 +1,55 @@
+/* rk-avatar：圆形头像。底色取 neutral 表面层（3），首字取正文层（8），深色主题随色阶自动反转。
+   尺寸档由 data-size 决定，首字字号约为直径的 0.4，字重 500（不用 bold，中文同样适用）。 */
+
+.rk-avatar {
+  --rk-avatar-size: 40px;
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--rk-avatar-size);
+  height: var(--rk-avatar-size);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--color-neutral-3);
+  color: var(--color-neutral-8);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.rk-avatar[data-size='24'] {
+  --rk-avatar-size: 24px;
+  font-size: 10px;
+}
+
+.rk-avatar[data-size='32'] {
+  --rk-avatar-size: 32px;
+  font-size: 13px;
+}
+
+.rk-avatar[data-size='64'] {
+  --rk-avatar-size: 64px;
+  font-size: 24px;
+}
+
+.rk-avatar[data-size='80'] {
+  --rk-avatar-size: 80px;
+  font-size: 32px;
+}
+
+.rk-avatar__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rk-avatar__initial {
+  letter-spacing: 0;
+}

@@ -156,6 +156,21 @@
                 "add_service": "添加服务",
                 "test_failed": "测试失败"
             },
+            "account": {
+                "label": "Logos 账号",
+                "title": "Logos 账号",
+                "user": "当前账号",
+                "unknown_user": "未知用户",
+                "not_logged_in": "尚未登录",
+                "login": "登录",
+                "waiting_browser": "等待浏览器完成登录",
+                "login_description": "登录后可使用 Logos AI 翻译服务。点击登录将在系统浏览器中打开登录页面，完成后返回本窗口。",
+                "logout": "退出登录",
+                "quota": "本月额度",
+                "remaining": "剩余比例",
+                "refresh": "刷新",
+                "resets_at": "额度将于 {{date}} 重置。"
+            },
             "about": {
                 "label": "关于应用",
                 "title": "关于应用",
@@ -306,6 +321,10 @@
                 "caiyun": {
                     "title": "彩云小译",
                     "token": "Token"
+                },
+                "logos_ai": {
+                    "title": "Logos AI",
+                    "description": "Logos AI 无需填写密钥，使用前须先在设置的「Logos 账号」页面登录。"
                 }
             },
             "recognize": {
@@ -390,6 +409,23 @@
             "recognize_language": "识别语言",
             "show_image": "显示截图",
             "hide_image": "隐藏截图"
+        },
+        "logos_account": {
+            "error": {
+                "not_logged_in": "尚未登录 Logos 账号，请在设置的「Logos 账号」页面登录后再使用 Logos AI。",
+                "unauthorized": "Logos 账号登录状态已失效，请重新登录。",
+                "forbidden": "当前账号无权使用 Logos AI。",
+                "user_disabled": "当前账号的 Logos AI 使用权限已被停用，请联系管理员。",
+                "quota_exhausted": "本月额度已用完，将于 {{date}} 重置。",
+                "quota_exhausted_no_date": "本月额度已用完，将于下月初重置。",
+                "global_quota_exhausted": "Logos AI 本月服务总额度已用完，暂时无法提供翻译。",
+                "rate_limited": "请求过于频繁，请稍后再试。",
+                "text_too_long": "原文超过 5000 字符的上限，请缩短后重试。",
+                "upstream_error": "翻译服务暂时不可用，请稍后重试。",
+                "stream_interrupted": "翻译结果不完整：与服务器的连接意外中断，请重试。",
+                "network": "无法连接 Logos AI 服务：{{detail}}",
+                "http": "Logos AI 服务返回错误（HTTP {{status}}）。"
+            }
         }
     }
 }

@@ -156,6 +156,21 @@
                 "add_service": "Add Service",
                 "test_failed": "Test Failed"
             },
+            "account": {
+                "label": "Logos Account",
+                "title": "Logos Account",
+                "user": "Account",
+                "unknown_user": "Unknown user",
+                "not_logged_in": "Not signed in",
+                "login": "Sign in",
+                "waiting_browser": "Waiting for the browser",
+                "login_description": "Signing in enables the Logos AI translation service. The sign-in page opens in the system browser; return to this window when it is complete.",
+                "logout": "Sign out",
+                "quota": "Monthly quota",
+                "remaining": "Remaining",
+                "refresh": "Refresh",
+                "resets_at": "The quota resets on {{date}}."
+            },
             "about": {
                 "label": "About",
                 "title": "About Application",
@@ -306,6 +321,10 @@
                 "caiyun": {
                     "title": "Caiyun",
                     "token": "Token"
+                },
+                "logos_ai": {
+                    "title": "Logos AI",
+                    "description": "Logos AI requires no API key. Sign in on the Logos Account page in Settings before use."
                 }
             },
             "recognize": {
@@ -390,6 +409,23 @@
             "recognize_language": "Recognition language",
             "show_image": "Show screenshot",
             "hide_image": "Hide screenshot"
+        },
+        "logos_account": {
+            "error": {
+                "not_logged_in": "You are not signed in to a Logos account. Sign in on the Logos Account page in Settings to use Logos AI.",
+                "unauthorized": "Your Logos account session has expired. Please sign in again.",
+                "forbidden": "This account is not permitted to use Logos AI.",
+                "user_disabled": "Logos AI access for this account has been disabled. Please contact the administrator.",
+                "quota_exhausted": "This month's quota has been used up. It resets on {{date}}.",
+                "quota_exhausted_no_date": "This month's quota has been used up. It resets at the start of next month.",
+                "global_quota_exhausted": "The Logos AI service quota for this month has been used up. Translation is temporarily unavailable.",
+                "rate_limited": "Too many requests. Please try again later.",
+                "text_too_long": "The text exceeds the 5000-character limit. Please shorten it and try again.",
+                "upstream_error": "The translation service is temporarily unavailable. Please try again later.",
+                "stream_interrupted": "The translation is incomplete because the connection was interrupted. Please try again.",
+                "network": "Unable to reach the Logos AI service: {{detail}}",
+                "http": "The Logos AI service returned an error (HTTP {{status}})."
+            }
         }
     }
 }

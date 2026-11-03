@@ -1,0 +1,230 @@
+/* rk-swipe-row：左右滑动露出操作按钮的行（iOS 列表的 swipe actions）。
+   位移只有一个来源：根上的 --rk-swipe-x。内容层 translateX、两侧按钮区宽度都由它推出；
+   吸附时根带 data-settling，让 --rk-swipe-x 走弹簧过渡：曲线与时长由 SwipeRow 松手时按初速度现算
+   （springEasing(SPRINGS.snappy, v0)），写在根的 --rk-swipe-ease / --rk-swipe-duration 上；
+   没写过时退回 --motion-spring-snappy。
+   分隔线、卡片圆角由 list.css 负责（画在 .rk-swipe-row__content::after 上），这里不画。 */
+
+@property --rk-swipe-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+.rk-swipe-row {
+  --rk-swipe-x: 0px;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--motion-spring-smooth-duration) var(--motion-spring-smooth),
+    opacity var(--motion-duration-exit) var(--motion-ease-standard);
+}
+
+.rk-swipe-row[data-settling] {
+  transition:
+    --rk-swipe-x var(--rk-swipe-duration, var(--motion-spring-snappy-duration))
+      var(--rk-swipe-ease, var(--motion-spring-snappy)),
+    grid-template-rows var(--motion-spring-smooth-duration) var(--motion-spring-smooth),
+    opacity var(--motion-duration-exit) var(--motion-ease-standard);
+}
+
+/* 移除：行高收起 + 淡出（smooth，与 AnimatedList 原位克隆的收拢同一节奏）；grid-template-rows 的 transitionend 后调 onRemoved */
+.rk-swipe-row[data-removing] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* full swipe 滑出的行：内容层先继续向左滑出，滑到大半（140ms，与 SWIPED_OUT_COLLAPSE_DELAY 一致）再开始收拢 */
+.rk-swipe-row[data-removing][data-swiped-out] {
+  transition:
+    --rk-swipe-x var(--rk-swipe-duration, var(--motion-spring-snappy-duration))
+      var(--rk-swipe-ease, var(--motion-spring-snappy)),
+    grid-template-rows var(--motion-spring-smooth-duration) var(--motion-spring-smooth) 140ms,
+    opacity var(--motion-duration-exit) var(--motion-ease-standard) 140ms;
+}
+
+/* 收起动画需要的内层：min-height 0 才能被 0fr 压扁；同时裁掉两侧按钮区 */
+.rk-swipe-row__clip {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 内容层排在按钮区之后（DOM 顺序），同为定位元素时自然盖在按钮区上面，不需要 z-index */
+.rk-swipe-row__content {
+  position: relative;
+  background: var(--rk-list-bg, var(--color-neutral-2));
+  transform: translateX(var(--rk-swipe-x));
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: default;
+  outline: none;
+  transition:
+    background-color var(--motion-duration-state) var(--motion-ease-standard),
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+/* 按下：只高亮，不缩放（iOS 列表行）；高亮即时出现、松手再淡出 */
+.rk-swipe-row[data-pressed] .rk-swipe-row__content {
+  background: color-mix(
+    in srgb,
+    var(--color-neutral-10) var(--state-pressed-opacity),
+    var(--rk-list-bg, var(--color-neutral-2))
+  );
+  transition-duration: 0s, var(--motion-spring-snappy-duration);
+}
+
+/* 长按（内容层带 data-context-action 时）：缩到 .97，松手或菜单弹出时弹回 */
+.rk-swipe-row[data-holding] .rk-swipe-row__content {
+  scale: 0.97;
+  border-radius: 10px;
+  transition:
+    background-color 0s,
+    scale var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+.rk-swipe-row__content:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.rk-swipe-row[data-dragging] .rk-swipe-row__content {
+  cursor: grabbing;
+}
+
+/* 两侧按钮区：宽度跟着 --rk-swipe-x 走，按钮均分；拖过头时一起变宽 */
+.rk-swipe-row__actions {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.rk-swipe-row__actions--leading {
+  left: 0;
+  width: max(0px, var(--rk-swipe-x));
+}
+
+.rk-swipe-row__actions--trailing {
+  right: 0;
+  width: max(0px, calc(-1 * var(--rk-swipe-x)));
+}
+
+.rk-swipe-row__action {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* full swipe：最外侧按钮绝对定位、浮在同侧其余按钮上面（定位元素画在非定位兄弟之上，不需要 z-index），
+   宽度由 --rk-swipe-arm（0 → 1）在「均分的一份」和「整片按钮区」之间插值；文字从这一份的正中滑到贴着内容边缘。
+   它在 flex 里的那一份由伪元素占着，其余按钮的布局不变。 */
+@property --rk-swipe-arm {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.rk-swipe-row__actions[data-full-swipe] {
+  --rk-swipe-arm: 0;
+  transition: --rk-swipe-arm var(--motion-spring-snappy-duration) var(--motion-spring-snappy);
+}
+
+.rk-swipe-row[data-armed='trailing'] .rk-swipe-row__actions--trailing,
+.rk-swipe-row[data-armed='leading'] .rk-swipe-row__actions--leading {
+  --rk-swipe-arm: 1;
+}
+
+.rk-swipe-row__actions[data-full-swipe]::after {
+  content: '';
+  flex: 1 1 0;
+}
+
+.rk-swipe-row__actions--leading[data-full-swipe]::after {
+  order: -1;
+}
+
+.rk-swipe-row__actions[data-full-swipe] > .rk-swipe-row__action[data-outer] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(100% * (1 + var(--rk-swipe-arm) * (var(--rk-swipe-n) - 1)) / var(--rk-swipe-n));
+}
+
+.rk-swipe-row__actions--trailing[data-full-swipe] > .rk-swipe-row__action[data-outer] {
+  right: 0;
+  justify-content: flex-start;
+  padding-left: calc((1 - var(--rk-swipe-arm)) * max(0px, (100% / var(--rk-swipe-n) - 64px) / 2));
+}
+
+.rk-swipe-row__actions--leading[data-full-swipe] > .rk-swipe-row__action[data-outer] {
+  left: 0;
+  justify-content: flex-end;
+  padding-right: calc((1 - var(--rk-swipe-arm)) * max(0px, (100% / var(--rk-swipe-n) - 64px) / 2));
+}
+
+.rk-swipe-row__action-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 64px;
+}
+
+.rk-swipe-row__action-label {
+  white-space: nowrap;
+}
+
+.rk-swipe-row__action[data-tone='neutral'] {
+  background: var(--color-neutral-6);
+}
+
+.rk-swipe-row__action[data-tone='info'] {
+  background: var(--color-info);
+}
+
+.rk-swipe-row__action[data-tone='success'] {
+  background: var(--color-success);
+}
+
+.rk-swipe-row__action[data-tone='warning'] {
+  background: var(--color-warning);
+}
+
+.rk-swipe-row__action[data-tone='error'] {
+  background: var(--color-error);
+}
+
+.rk-swipe-row__action:focus-visible {
+  outline: 2px solid var(--color-paper);
+  outline-offset: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-swipe-row,
+  .rk-swipe-row[data-settling],
+  .rk-swipe-row[data-removing][data-swiped-out],
+  .rk-swipe-row__actions[data-full-swipe],
+  .rk-swipe-row__content,
+  .rk-swipe-row[data-holding] .rk-swipe-row__content {
+    transition: none;
+  }
+
+  .rk-swipe-row[data-holding] .rk-swipe-row__content {
+    scale: none;
+  }
+}
