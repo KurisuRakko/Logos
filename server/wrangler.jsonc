@@ -16,7 +16,7 @@
       "binding": "DB",
       "database_name": "logos-api",
       // 占位：部署前 `wrangler d1 create logos-api` 后填真实 id。
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "6355b4e6-46bf-43e9-ba93-69e5aa5022fd",
       "migrations_dir": "migrations"
     }
   ],
