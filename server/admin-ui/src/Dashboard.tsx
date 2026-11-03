@@ -3,6 +3,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ApiError, AuthRequiredError, fetchUsers, patchUser } from './api'
 import type { AdminUser, GlobalQuota, UserPatch } from './api'
+import { ClientLogs } from './ClientLogs'
 import { EditUserDialog } from './EditUserDialog'
 import { displayName, formatPercent, formatTime, formatYuan, remainingRatio } from './format'
 import { ChevronIcon, RefreshIcon } from './icons'
@@ -194,6 +195,7 @@ export function Dashboard({ onAuthLost, onForbidden, onReload }: DashboardProps)
               </div>
             )}
           </section>
+          <ClientLogs users={users} onAuthError={handleAuthError} />
         </>
       ) : null}
 

@@ -50,8 +50,17 @@ Cloudflare Worker，生产域名 `https://logos-api.rakko.cn`，代码在本仓�
 | GET | `/admin/api/users` | 鉴权且 `role === 'admin'`。本月每个有记录或有设置的用户：`[{sub, display_name, limit_micro, used_micro, disabled, last_used_at}]`，外加 `{global: {limit_micro, used_micro}}`。 |
 | PATCH | `/admin/api/users/:sub` | admin。body `{limit_micro?: number|null, disabled?: boolean, display_name?: string}`（null 表示恢复默认额度）。 |
 | GET | `/admin/api/usage?sub=&limit=` | admin。最近明细。 |
+| POST | `/v1/logs` | 鉴权（同 `/v1/*`，含 CORS）。客户端日志上传，见下「客户端日志」。 |
+| GET | `/admin/api/logs?sub=&level=&limit=` | admin。客户端日志，见下「客户端日志」。 |
 
-错误码：`unauthorized`(401)、`forbidden`(403)、`user_disabled`(403)、`quota_exhausted`(402)、`global_quota_exhausted`(503)、`rate_limited`(429)、`text_too_long`(400)、`upstream_error`(502)。
+错误码：`unauthorized`(401)、`forbidden`(403)、`user_disabled`(403)、`quota_exhausted`(402)、`global_quota_exhausted`(503)、`rate_limited`(429)、`text_too_long`(400)、`upstream_error`(502)、`upstream_busy`(503，「翻译服务当前繁忙，请稍后重试。」)、`invalid_request`(400)。
+
+## 上游重试（2026-11-03 定）
+
+- `/v1/translate` 调 DeepSeek 时，fetch 抛错或返回 429/500/502/503/504 即退避重试，间隔 400 ms、1200 ms，共最多 3 次（总等待约 1.6 秒）。
+  重试只发生在拿到 2xx 响应之前，此时尚未向客户端发出任何内容；开流后的中断不重试。其他非 2xx（如 400、401、402）不重试。
+- 全部失败时按最后一次的结果定错误码：HTTP 503 → `upstream_busy`(503)，其余 → `upstream_error`(502)。预扣全额退回。
+- 每次失败用 `console.error` 记录尝试序号、HTTP 状态与 DeepSeek 错误体的 `error.type` / `error.code`（不记 key、原文与错误 message）。
 
 ## D1（binding `DB`）
 
@@ -60,7 +69,15 @@ CREATE TABLE user_settings (sub TEXT PRIMARY KEY, display_name TEXT, limit_micro
 CREATE TABLE usage_log (id INTEGER PRIMARY KEY AUTOINCREMENT, sub TEXT NOT NULL, month TEXT NOT NULL, created_at INTEGER NOT NULL,
   cache_hit_tokens INTEGER NOT NULL, cache_miss_tokens INTEGER NOT NULL, output_tokens INTEGER NOT NULL, cost_micro INTEGER NOT NULL, ok INTEGER NOT NULL);
 CREATE INDEX usage_log_sub_month ON usage_log(sub, month);
+-- 0002
+ALTER TABLE usage_log ADD COLUMN error TEXT;
+CREATE TABLE client_logs (id INTEGER PRIMARY KEY, sub TEXT NOT NULL, created_at INTEGER NOT NULL, level TEXT NOT NULL, event TEXT NOT NULL,
+  message TEXT NOT NULL, context TEXT, app_version TEXT, os TEXT, client_time TEXT);
+CREATE INDEX client_logs_sub_created ON client_logs(sub, created_at);
+CREATE INDEX client_logs_created ON client_logs(created_at);
 ```
+`usage_log.error`：失败原因，成功为 NULL。取值 `upstream_<HTTP 状态>`（如 `upstream_503`）、`upstream_timeout`、`upstream_network`、`upstream_empty_body`、
+`stream_interrupted`（开流后上游中断、拿不到 usage）、`internal_error`。
 DO 是额度的权威；usage_log 只供展示。DO 读取单人额度覆盖/停用状态时从 D1 取并短时缓存（≤60 秒），管理页 PATCH 后应让对应 DO 失效缓存。
 
 ## Secrets / vars
@@ -84,4 +101,17 @@ system：将用户提供的文本从 {from} 翻译为 {to}（from 为 auto 时�
 - 对外返回的时间字段（last_used_at、created_at、resets_at）一律 ISO 8601 字符串；D1 内部存 Unix 秒。
 - `GET /admin/api/users` → `{users: [{sub, display_name, limit_micro, limit_is_default, used_micro, disabled, last_used_at}], global: {limit_micro, used_micro}}`；`limit_micro` 为实际生效额度，`limit_is_default` 表示未覆盖；`disabled` 为 boolean，`last_used_at` 可为 null。
 - `GET /admin/api/usage?sub=&limit=` → `{items: [{id, sub, created_at, cache_hit_tokens, cache_miss_tokens, output_tokens, cost_micro, ok}]}`，`ok` 为 boolean，按 created_at 倒序，limit 默认 50、上限 500。
+- `GET /admin/api/usage` 的条目另含 `error`（string | null，取值见「D1」）。
 - `/auth/exchange` 由 Phainon 返回，客户端以其 `expires_in` 为准，缺省按 900 秒。
+
+## 客户端日志（2026-11-03 定）
+
+- `POST /v1/logs`：body `{app_version?, os?, entries: [{level, event, message, context?, client_time}]}` → `{accepted: n}`。
+  - `level` ∈ `error` / `warn` / `info`；`event` 非空且 ≤ 64 字符；`message` 为字符串，超过 2000 字符截断；`client_time` 为可解析的 ISO 时间（≤ 64 字符）。
+  - `context` 任意 JSON，序列化后超过 4096 字节时改存 `{"truncated": true, "preview": <序列化结果的前缀>}`（仍 ≤ 4096 字节）。
+  - `app_version`、`os` 可缺省，非字符串 400，超过 64 字符截断。
+  - 整体校验失败（body 非对象、`entries` 非数组、超过 20 条）返回 400 `invalid_request`；单条不合格只丢弃该条，`accepted` 为实际入库条数。
+  - 每用户每分钟 10 次（UserQuota DO 内独立计数，不占翻译限频），超出 429 `rate_limited`。停用用户允许上传；未登录 401。
+- 入库 `client_logs`，`created_at` 为服务端接收时刻（Unix 秒）。保留 30 天：cron trigger `17 19 * * *`（UTC，即北京时间 3:17）每日删除 `created_at` 早于 30 天的行。
+- `GET /admin/api/logs?sub=&level=&limit=`（admin）→ `{items: [{id, sub, display_name, created_at, level, event, message, context, app_version, os, client_time}]}`：
+  按 created_at 倒序，limit 默认 100、上限 500；`created_at` 为 ISO；`context` 解析回 JSON（无则 null）；`display_name` 取自 user_settings，可为 null；`level` 非法 400。

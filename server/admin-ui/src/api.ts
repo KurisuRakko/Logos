@@ -33,6 +33,32 @@ export interface UsageEntry {
   output_tokens: number
   cost_micro: number
   ok: boolean
+  /** 失败原因（如 upstream_503、stream_interrupted），成功或旧记录为 null */
+  error?: string | null
+}
+
+export type LogLevel = 'error' | 'warn' | 'info'
+
+export interface ClientLog {
+  id: number
+  sub: string
+  display_name: string | null
+  /** 服务端接收时间（ISO） */
+  created_at: string
+  level: LogLevel
+  event: string
+  message: string
+  context: unknown
+  app_version: string | null
+  os: string | null
+  /** 客户端上报的发生时间（ISO） */
+  client_time: string | null
+}
+
+export interface LogsQuery {
+  sub?: string
+  level?: LogLevel
+  limit?: number
 }
 
 export interface UserPatch {
@@ -128,4 +154,14 @@ export async function fetchUsage(sub: string, limit = 20): Promise<UsageEntry[]>
   const list = Array.isArray(body) ? (body as UsageEntry[]) : (b.items ?? b.usage)
   // D1 的 ok 是 0 / 1，统一成布尔
   return Array.isArray(list) ? list.map((e) => ({ ...e, ok: Boolean(e.ok) })) : []
+}
+
+/** 客户端日志（GET /admin/api/logs），按接收时间倒序 */
+export async function fetchLogs(query: LogsQuery = {}): Promise<ClientLog[]> {
+  const params = new URLSearchParams()
+  if (query.sub) params.set('sub', query.sub)
+  if (query.level) params.set('level', query.level)
+  if (query.limit) params.set('limit', String(query.limit))
+  const body = (await request(`/logs?${params}`)) as { items?: ClientLog[] } | null
+  return Array.isArray(body?.items) ? body.items : []
 }

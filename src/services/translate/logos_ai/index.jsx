@@ -1,12 +1,36 @@
 import i18n from 'i18next';
 
 import { LogosApiError, logosApiFetch } from '../../../utils/logos_account';
+import { remoteLog } from '../../../utils/remote_log';
 
 // POST /v1/translate answers with text/event-stream:
 //   data: {"delta":"…"}  (repeated)
 //   data: {"done":true,"cost_micro":n,"remaining_ratio":0..1}
 // Errors arrive as JSON before the stream opens and are raised by logosApiFetch.
 export async function translate(text, from, to, options) {
+    const started = Date.now();
+    try {
+        const result = await translateStream(text, from, to, options);
+        remoteLog('info', 'translate_ok', '', { duration_ms: Date.now() - started, text_length: text.length });
+        return result;
+    } catch (e) {
+        // only metadata; the text itself never leaves the client through logs
+        if (e?.code !== 'not_logged_in') {
+            const status = /^http_(\d+)$/.exec(e?.code ?? '')?.[1];
+            remoteLog('error', 'translate_failed', e?.message ?? String(e), {
+                status: status ? Number(status) : undefined,
+                code: e?.code ?? 'unknown',
+                duration_ms: Date.now() - started,
+                from,
+                to,
+                text_length: text.length,
+            });
+        }
+        throw e;
+    }
+}
+
+async function translateStream(text, from, to, options) {
     const { setResult } = options;
 
     const res = await logosApiFetch('/v1/translate', {

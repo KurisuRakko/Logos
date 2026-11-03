@@ -422,6 +422,7 @@
                 "rate_limited": "Too many requests. Please try again later.",
                 "text_too_long": "The text exceeds the 5000-character limit. Please shorten it and try again.",
                 "upstream_error": "The translation service is temporarily unavailable. Please try again later.",
+                "upstream_busy": "The translation service is currently busy. Please try again later.",
                 "stream_interrupted": "The translation is incomplete because the connection was interrupted. Please try again.",
                 "network": "Unable to reach the Logos AI service: {{detail}}",
                 "http": "The Logos AI service returned an error (HTTP {{status}})."

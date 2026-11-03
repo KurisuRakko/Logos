@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { fetchLogosQuota, formatResetDate } from '../../../../utils/logos_account';
+import { remoteLog } from '../../../../utils/remote_log';
 
 export default function Account() {
     const { t } = useTranslation();
@@ -61,6 +62,7 @@ export default function Account() {
             (e) => {
                 setIsLoggingIn(false);
                 setLoginError(String(e));
+                remoteLog('error', 'account_login_failed', String(e));
             }
         );
     };

@@ -3,8 +3,9 @@ import { cors } from 'hono/cors'
 import { createMiddleware } from 'hono/factory'
 import { admin } from './admin'
 import { bearerToken, verifyToken } from './auth'
-import type { AppEnv } from './env'
+import type { AppEnv, Env } from './env'
 import { errorResponse } from './errors'
+import { handleLogUpload, purgeExpiredLogs } from './logs'
 import { handleTranslate } from './translate'
 
 export { GlobalQuota } from './quota/global-quota'
@@ -43,6 +44,7 @@ app.use('/v1/*', authenticate)
 app.use('/admin/api/*', authenticate)
 
 app.post('/v1/translate', handleTranslate)
+app.post('/v1/logs', handleLogUpload)
 
 app.get('/v1/quota', async (c) => {
   const sub = c.get('identity').sub
@@ -58,4 +60,11 @@ app.onError((err) => {
   return errorResponse('internal_error')
 })
 
-export default app
+export default {
+  fetch: app.fetch,
+  // 每日 cron：清理过期客户端日志。
+  async scheduled(controller, env) {
+    const deleted = await purgeExpiredLogs(env, controller.scheduledTime)
+    console.log('client_logs purged', { deleted })
+  }
+} satisfies ExportedHandler<Env>

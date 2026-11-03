@@ -5,6 +5,7 @@ import { beijingMonth, nextMonthStart } from '../time'
 import { Ledger, RESERVATION_TTL_MS, ensureAlarm } from './ledger'
 
 export const RATE_LIMIT_PER_MINUTE = 30
+export const LOG_RATE_LIMIT_PER_MINUTE = 10
 const RATE_WINDOW_MS = 60_000
 const SETTINGS_TTL_MS = 30_000
 
@@ -31,6 +32,8 @@ export class UserQuota extends DurableObject<Env> {
     super(ctx, env)
     this.ledger = new Ledger(ctx.storage)
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS hits (ts INTEGER NOT NULL)')
+    // 客户端日志上传单独计数，不占翻译限频。
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS log_hits (ts INTEGER NOT NULL)')
   }
 
   async reserve(sub: string, id: string, amount: number, now: number): Promise<ReserveResult> {
@@ -49,6 +52,16 @@ export class UserQuota extends DurableObject<Env> {
     }
     await ensureAlarm(this.ctx.storage, now + RESERVATION_TTL_MS)
     return { ok: true }
+  }
+
+  // /v1/logs 限频，滑动窗口同翻译；不检查停用状态（停用用户也可上传日志）。
+  async allowLogUpload(now: number): Promise<boolean> {
+    const sql = this.ctx.storage.sql
+    sql.exec('DELETE FROM log_hits WHERE ts <= ?', now - RATE_WINDOW_MS)
+    const hits = sql.exec<{ n: number }>('SELECT COUNT(*) AS n FROM log_hits').one().n
+    if (hits >= LOG_RATE_LIMIT_PER_MINUTE) return false
+    sql.exec('INSERT INTO log_hits (ts) VALUES (?)', now)
+    return true
   }
 
   async settle(sub: string, id: string, cost: number, now: number): Promise<QuotaSnapshot> {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { ApiError, fetchUsage } from './api'
 import type { UsageEntry } from './api'
-import { formatTime, formatTokens, formatYuan } from './format'
+import { failureReason, formatTime, formatTokens, formatYuan } from './format'
 
 /** 最近明细条数 */
 const USAGE_LIMIT = 20
@@ -83,20 +83,28 @@ export function UsageDetail({ sub, onAuthError }: UsageDetailProps) {
           </tr>
         </thead>
         <tbody>
-          {load.items.map((item) => (
-            <tr key={item.id}>
-              <td className="la-nowrap">{formatTime(item.created_at)}</td>
-              <td className="la-num">{formatTokens(item.cache_hit_tokens)}</td>
-              <td className="la-num">{formatTokens(item.cache_miss_tokens)}</td>
-              <td className="la-num">{formatTokens(item.output_tokens)}</td>
-              <td className="la-num">{formatYuan(item.cost_micro)}</td>
-              <td>
-                <span className="la-tag" data-tone={item.ok ? 'success' : 'error'}>
-                  {item.ok ? '成功' : '失败'}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {load.items.map((item) => {
+            const reason = item.ok ? null : failureReason(item.error)
+            return (
+              <tr key={item.id}>
+                <td className="la-nowrap">{formatTime(item.created_at)}</td>
+                <td className="la-num">{formatTokens(item.cache_hit_tokens)}</td>
+                <td className="la-num">{formatTokens(item.cache_miss_tokens)}</td>
+                <td className="la-num">{formatTokens(item.output_tokens)}</td>
+                <td className="la-num">{formatYuan(item.cost_micro)}</td>
+                <td>
+                  <span
+                    className="la-tag"
+                    data-tone={item.ok ? 'success' : 'error'}
+                    title={reason ? `${reason}（${item.error}）` : undefined}
+                  >
+                    {item.ok ? '成功' : '失败'}
+                  </span>
+                  {reason ? <span className="la-reason">{reason}</span> : null}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

@@ -34,6 +34,8 @@
     "GLOBAL_MONTHLY_LIMIT_CNY": "200",
     "DEFAULT_MONTHLY_LIMIT_CNY": "10"
   },
+  // 每日 UTC 19:17（北京时间 3:17）清理 30 天前的 client_logs。
+  "triggers": { "crons": ["17 19 * * *"] },
   "observability": { "enabled": true }
   // secret: DEEPSEEK_API_KEY（`wrangler secret put DEEPSEEK_API_KEY`）
 }

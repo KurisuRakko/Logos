@@ -5,6 +5,7 @@ import { MotionGlobalConfig } from 'framer-motion';
 import ReactDOM from 'react-dom/client';
 import React from 'react';
 
+import { installRemoteErrorLog } from './utils/remote_log';
 import { installFeedback } from './utils/feedback';
 import { initStore } from './utils/store';
 import { initEnv } from './utils/env';
@@ -16,6 +17,8 @@ MotionGlobalConfig.skipAnimations = true;
 
 // NextUI's framer ripple stays off (disableRipple below); Rakko Design's ripple and press run instead
 installFeedback();
+
+installRemoteErrorLog();
 
 if (import.meta.env.PROD) {
     document.addEventListener('contextmenu', (e) => {

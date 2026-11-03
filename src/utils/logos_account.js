@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api';
 import i18n from 'i18next';
 
+import { remoteLog } from './remote_log';
 import { getSnapshot } from './store';
 
 const DEFAULT_LOGOS_API_BASE = 'https://logos-api.rakko.cn';
@@ -31,6 +32,8 @@ export async function getLogosAccessToken() {
     try {
         token = await invoke('logos_account_token');
     } catch (e) {
+        // the Rust side refreshes the token here, so this is where a failed renewal shows up
+        remoteLog('warn', 'account_token_failed', String(e));
         throw new LogosApiError('network_error', String(e));
     }
     if (!token) {
@@ -56,6 +59,7 @@ const ERROR_KEYS = [
     'rate_limited',
     'text_too_long',
     'upstream_error',
+    'upstream_busy',
 ];
 
 // Turn a non-2xx logos-api response ({error: {code, message}}) into a LogosApiError
@@ -104,6 +108,13 @@ export async function logosApiFetch(path, init = {}) {
 
 // {limit_micro, used_micro, remaining_ratio, resets_at}
 export async function fetchLogosQuota() {
-    const res = await logosApiFetch('/v1/quota');
-    return await res.json();
+    try {
+        const res = await logosApiFetch('/v1/quota');
+        return await res.json();
+    } catch (e) {
+        if (e?.code !== 'not_logged_in') {
+            remoteLog('warn', 'account_quota_failed', e?.message ?? String(e), { code: e?.code });
+        }
+        throw e;
+    }
 }

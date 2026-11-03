@@ -1,7 +1,9 @@
-import { env, runInDurableObject } from 'cloudflare:test'
+import { createScheduledController, env, runInDurableObject } from 'cloudflare:test'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reserveMicro } from '../src/pricing'
-import { RATE_LIMIT_PER_MINUTE } from '../src/quota/user-quota'
+import worker from '../src/index'
+import { MAX_CONTEXT_BYTES, MAX_MESSAGE_CHARS } from '../src/logs'
+import { LOG_RATE_LIMIT_PER_MINUTE, RATE_LIMIT_PER_MINUTE } from '../src/quota/user-quota'
 import { call, installFetchMock, readEvents, translate, uniqueSub } from './helpers'
 
 // 2026-11-02 周一 10:00 北京时间（高峰）；2026-11-07 周六 10:00（空闲）。
@@ -240,7 +242,7 @@ describe('计价与结算', () => {
     expect(await pendingReservations(userStub(sub))).toBe(0)
   })
 
-  it('上游返回错误时全额退回', async () => {
+  it('上游返回错误（重试后仍失败）时全额退回', { timeout: 15_000 }, async () => {
     const sub = uniqueSub('fail')
     await setLimit(sub, reserveMicro(11))
     const token = fx.user({ sub })
@@ -249,6 +251,7 @@ describe('计价与结算', () => {
     const res = await translate(token)
     expect(res.status).toBe(502)
     expect(await res.json()).toMatchObject({ error: { code: 'upstream_error' } })
+    expect(fx.deepseekCalls).toHaveLength(3)
 
     fx.setDeepseek({ kind: 'throw' })
     expect((await translate(token)).status).toBe(502)
@@ -258,6 +261,42 @@ describe('计价与结算', () => {
     // 额度只够一次预扣：退回干净才能再次通过
     fx.setDeepseek({ kind: 'ok' })
     expect((await translate(token)).status).toBe(200)
+  })
+
+  it('上游 503 两次后成功：重试后正常返回并结算', { timeout: 10_000 }, async () => {
+    const sub = uniqueSub('retry')
+    const token = fx.user({ sub })
+    const busy = { kind: 'status', status: 503, body: { error: { message: 'Service is too busy', type: 'service_unavailable_error', code: 'server_busy' } } } as const
+    fx.queueDeepseek(busy, busy)
+    const res = await translate(token)
+    expect(res.status).toBe(200)
+    const events = await readEvents(res)
+    expect(events.at(-1)).toMatchObject({ done: true, cost_micro: 2640 })
+    expect(fx.deepseekCalls).toHaveLength(3)
+    expect((await quota(token)).used_micro).toBe(2640)
+  })
+
+  it('上游连续 503 返回 upstream_busy，退回预扣并记录失败原因', { timeout: 10_000 }, async () => {
+    const sub = uniqueSub('busy')
+    await setLimit(sub, reserveMicro(11))
+    const token = fx.user({ sub })
+    fx.setDeepseek({ kind: 'status', status: 503 })
+    const res = await translate(token)
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ error: { code: 'upstream_busy', message: '翻译服务当前繁忙，请稍后重试。' } })
+    expect(fx.deepseekCalls).toHaveLength(3)
+    expect((await quota(token)).used_micro).toBe(0)
+    expect(await pendingReservations(userStub(sub))).toBe(0)
+    const row = await env.DB.prepare('SELECT ok, error FROM usage_log WHERE sub = ?').bind(sub).first()
+    expect(row).toEqual({ ok: 0, error: 'upstream_503' })
+  })
+
+  it('上游 400 不重试', async () => {
+    const token = fx.user({ sub: uniqueSub('nonretry') })
+    fx.setDeepseek({ kind: 'status', status: 400 })
+    const res = await translate(token)
+    expect(res.status).toBe(502)
+    expect(fx.deepseekCalls).toHaveLength(1)
   })
 
   it('上游已输出后中途断流：发送错误事件并按预扣额结算', async () => {
@@ -283,6 +322,10 @@ describe('计价与结算', () => {
     expect(events[0]).toMatchObject({ error: { code: 'upstream_error' } })
     expect((await quota(token)).used_micro).toBe(0)
     expect(await pendingReservations(userStub(sub))).toBe(0)
+    await waitFor(async () => {
+      const row = await env.DB.prepare('SELECT error FROM usage_log WHERE sub = ?').bind(sub).first<{ error: string }>()
+      return row?.error === 'stream_interrupted'
+    })
   })
 
   it('全局结算失败时不退回，预扣保留给 alarm 按预扣额结算', async () => {
@@ -466,8 +509,119 @@ describe('管理接口', () => {
     const items = ((await usage.json()) as { items: any[] }).items
     expect(items).toHaveLength(1)
     expect(Object.keys(items[0]).sort()).toEqual(
-      ['cache_hit_tokens', 'cache_miss_tokens', 'cost_micro', 'created_at', 'id', 'ok', 'output_tokens', 'sub']
+      ['cache_hit_tokens', 'cache_miss_tokens', 'cost_micro', 'created_at', 'error', 'id', 'ok', 'output_tokens', 'sub']
     )
-    expect(items[0]).toMatchObject({ sub, created_at: PEAK.toISOString(), cache_hit_tokens: 1000, cache_miss_tokens: 500, output_tokens: 200, cost_micro: 2640, ok: true })
+    expect(items[0]).toMatchObject({ sub, created_at: PEAK.toISOString(), cache_hit_tokens: 1000, cache_miss_tokens: 500, output_tokens: 200, cost_micro: 2640, ok: true, error: null })
+  })
+})
+
+function uploadLogs(token: string | null, body: unknown) {
+  return call('/v1/logs', token, { method: 'POST', body: JSON.stringify(body) })
+}
+
+function logEntry(overrides: Record<string, unknown> = {}) {
+  return { level: 'error', event: 'translate_failed', message: '请求失败', client_time: '2026-11-02T02:00:00.000Z', ...overrides }
+}
+
+describe('客户端日志', () => {
+  it('未登录返回 401', async () => {
+    const res = await uploadLogs(null, { entries: [logEntry()] })
+    expect(res.status).toBe(401)
+  })
+
+  it('校验与截断：不合格条目丢弃，message 与 context 超长截断', async () => {
+    const sub = uniqueSub('logs')
+    const token = fx.user({ sub })
+    const big = { blob: '字'.repeat(3000) }
+    const res = await uploadLogs(token, {
+      app_version: '0.3.1',
+      os: 'windows',
+      entries: [
+        logEntry({ message: 'x'.repeat(MAX_MESSAGE_CHARS + 100), context: { status: 503 } }),
+        logEntry({ level: 'warn', event: 'big_context', context: big }),
+        logEntry({ level: 'debug' }),
+        logEntry({ event: 'e'.repeat(65) }),
+        logEntry({ client_time: 'yesterday' }),
+        'not an object'
+      ]
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ accepted: 2 })
+
+    const { results } = await env.DB.prepare('SELECT * FROM client_logs WHERE sub = ? ORDER BY id').bind(sub).all<any>()
+    expect(results).toHaveLength(2)
+    expect(results[0]).toMatchObject({ level: 'error', event: 'translate_failed', context: '{"status":503}', app_version: '0.3.1', os: 'windows', created_at: PEAK.getTime() / 1000 })
+    expect(results[0].message).toHaveLength(MAX_MESSAGE_CHARS)
+    expect(new TextEncoder().encode(results[1].context).length).toBeLessThanOrEqual(MAX_CONTEXT_BYTES)
+    expect(JSON.parse(results[1].context)).toMatchObject({ truncated: true })
+
+    expect((await uploadLogs(token, { entries: Array.from({ length: 21 }, () => logEntry()) })).status).toBe(400)
+    expect((await uploadLogs(token, { entries: 'x' })).status).toBe(400)
+    expect((await uploadLogs(token, { app_version: 1, entries: [] })).status).toBe(400)
+  })
+
+  it('停用用户也可上传', async () => {
+    const sub = uniqueSub('logs-disabled')
+    await setLimit(sub, null, 1)
+    const token = fx.user({ sub })
+    const res = await uploadLogs(token, { entries: [logEntry()] })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ accepted: 1 })
+  })
+
+  it(`每分钟超过 ${LOG_RATE_LIMIT_PER_MINUTE} 次返回 429，且不占翻译限频`, async () => {
+    const token = fx.user({ sub: uniqueSub('logs-rate') })
+    for (let i = 0; i < LOG_RATE_LIMIT_PER_MINUTE; i++) {
+      expect((await uploadLogs(token, { entries: [] })).status).toBe(200)
+    }
+    const limited = await uploadLogs(token, { entries: [] })
+    expect(limited.status).toBe(429)
+    expect(await limited.json()).toMatchObject({ error: { code: 'rate_limited' } })
+    const res = await translate(token, 'hi')
+    expect(res.status).toBe(200)
+    await res.text()
+
+    vi.setSystemTime(PEAK.getTime() + 61_000)
+    expect((await uploadLogs(token, { entries: [] })).status).toBe(200)
+  })
+
+  it('管理接口：非管理员 403，管理员按用户与级别筛选', async () => {
+    const sub = uniqueSub('logs-admin')
+    const token = fx.user({ sub })
+    await uploadLogs(token, { app_version: '0.3.1', os: 'macos', entries: [logEntry({ context: { a: 1 } }), logEntry({ level: 'info', event: 'started' })] })
+
+    expect((await call('/admin/api/logs', token)).status).toBe(403)
+
+    const adminToken = fx.user({ sub: uniqueSub('admin'), role: 'admin' })
+    const res = await call(`/admin/api/logs?sub=${encodeURIComponent(sub)}&level=error`, adminToken)
+    expect(res.status).toBe(200)
+    const items = ((await res.json()) as { items: any[] }).items
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sub,
+      level: 'error',
+      event: 'translate_failed',
+      context: { a: 1 },
+      app_version: '0.3.1',
+      os: 'macos',
+      created_at: PEAK.toISOString(),
+      client_time: '2026-11-02T02:00:00.000Z'
+    })
+    const all = await call(`/admin/api/logs?sub=${encodeURIComponent(sub)}`, adminToken)
+    expect(((await all.json()) as { items: any[] }).items).toHaveLength(2)
+    expect((await call('/admin/api/logs?level=debug', adminToken)).status).toBe(400)
+  })
+
+  it('cron 删除 30 天前的日志', async () => {
+    const sub = uniqueSub('logs-purge')
+    const now = Math.floor(PEAK.getTime() / 1000)
+    const insert = env.DB.prepare(
+      "INSERT INTO client_logs (sub, created_at, level, event, message, client_time) VALUES (?, ?, 'info', 'e', 'm', '2026-01-01T00:00:00Z')"
+    )
+    await env.DB.batch([insert.bind(sub, now - 31 * 86_400), insert.bind(sub, now - 29 * 86_400)])
+
+    await worker.scheduled(createScheduledController({ scheduledTime: PEAK.getTime(), cron: '17 19 * * *' }), env)
+    const { results } = await env.DB.prepare('SELECT created_at FROM client_logs WHERE sub = ?').bind(sub).all()
+    expect(results).toEqual([{ created_at: now - 29 * 86_400 }])
   })
 })

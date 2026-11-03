@@ -68,3 +68,26 @@ export function formatTokens(n: number): string {
 export function displayName(user: AdminUser): string {
   return user.display_name?.trim() || user.sub
 }
+
+/** usage_log.error → 管理页显示的失败原因；未知取值原样显示 */
+export function failureReason(error: string | null | undefined): string | null {
+  if (!error) return null
+  const status = /^upstream_(\d{3})$/.exec(error)?.[1]
+  if (status === '503') return '上游繁忙（HTTP 503）'
+  if (status === '429') return '上游限流（HTTP 429）'
+  if (status) return `上游错误（HTTP ${status}）`
+  switch (error) {
+    case 'upstream_timeout':
+      return '上游请求超时'
+    case 'upstream_network':
+      return '上游网络错误'
+    case 'upstream_empty_body':
+      return '上游响应为空'
+    case 'stream_interrupted':
+      return '上游输出中断'
+    case 'internal_error':
+      return '服务内部错误'
+    default:
+      return error
+  }
+}

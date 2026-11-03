@@ -1,12 +1,15 @@
 import { Hono } from 'hono'
 import type { AppEnv, Env } from './env'
 import { errorResponse } from './errors'
+import { LOG_LEVELS } from './logs'
 import { GLOBAL_QUOTA_NAME } from './quota/global-quota'
 import { beijingMonth } from './time'
 
 const MAX_DISPLAY_NAME = 100
 const DEFAULT_USAGE_LIMIT = 50
 const MAX_USAGE_LIMIT = 500
+const DEFAULT_LOGS_LIMIT = 100
+const MAX_LOGS_LIMIT = 500
 
 interface SettingsRow {
   sub: string
@@ -17,6 +20,11 @@ interface SettingsRow {
 }
 
 // D1 存 Unix 秒，对外一律返回 ISO 8601。
+function parseLimit(raw: string | undefined, fallback: number, max: number): number {
+  const n = Number(raw ?? fallback)
+  return Number.isInteger(n) && n > 0 ? Math.min(n, max) : fallback
+}
+
 function isoFromSeconds(seconds: number): string {
   return new Date(seconds * 1000).toISOString()
 }
@@ -114,10 +122,9 @@ admin.patch('/users/:sub', async (c) => {
 
 admin.get('/usage', async (c) => {
   const sub = c.req.query('sub') || null
-  const rawLimit = Number(c.req.query('limit') ?? DEFAULT_USAGE_LIMIT)
-  const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, MAX_USAGE_LIMIT) : DEFAULT_USAGE_LIMIT
+  const limit = parseLimit(c.req.query('limit'), DEFAULT_USAGE_LIMIT, MAX_USAGE_LIMIT)
   const { results } = await c.env.DB.prepare(
-    `SELECT id, sub, created_at, cache_hit_tokens, cache_miss_tokens, output_tokens, cost_micro, ok
+    `SELECT id, sub, created_at, cache_hit_tokens, cache_miss_tokens, output_tokens, cost_micro, ok, error
        FROM usage_log WHERE (?1 IS NULL OR sub = ?1) ORDER BY created_at DESC, id DESC LIMIT ?2`
   )
     .bind(sub, limit)
@@ -130,8 +137,51 @@ admin.get('/usage', async (c) => {
       output_tokens: number
       cost_micro: number
       ok: number
+      error: string | null
     }>()
   return c.json({
     items: results.map((r) => ({ ...r, created_at: isoFromSeconds(r.created_at), ok: Boolean(r.ok) }))
   })
 })
+
+// 客户端日志，按接收时间倒序；context 原样解析回 JSON。
+admin.get('/logs', async (c) => {
+  const sub = c.req.query('sub') || null
+  const level = c.req.query('level') || null
+  if (level !== null && !(LOG_LEVELS as readonly string[]).includes(level)) {
+    return errorResponse('invalid_request', `level 必须为 ${LOG_LEVELS.join('、')} 之一。`)
+  }
+  const limit = parseLimit(c.req.query('limit'), DEFAULT_LOGS_LIMIT, MAX_LOGS_LIMIT)
+  const { results } = await c.env.DB.prepare(
+    `SELECT l.id, l.sub, s.display_name, l.created_at, l.level, l.event, l.message, l.context, l.app_version, l.os, l.client_time
+       FROM client_logs l LEFT JOIN user_settings s ON s.sub = l.sub
+      WHERE (?1 IS NULL OR l.sub = ?1) AND (?2 IS NULL OR l.level = ?2)
+      ORDER BY l.created_at DESC, l.id DESC LIMIT ?3`
+  )
+    .bind(sub, level, limit)
+    .all<{
+      id: number
+      sub: string
+      display_name: string | null
+      created_at: number
+      level: string
+      event: string
+      message: string
+      context: string | null
+      app_version: string | null
+      os: string | null
+      client_time: string | null
+    }>()
+  return c.json({
+    items: results.map((r) => ({ ...r, created_at: isoFromSeconds(r.created_at), context: parseContext(r.context) }))
+  })
+})
+
+function parseContext(raw: string | null): unknown {
+  if (raw === null) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return raw
+  }
+}

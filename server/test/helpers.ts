@@ -18,7 +18,7 @@ export interface DeepseekUsage {
 
 export type DeepseekBehavior =
   | { kind: 'ok'; deltas?: string[]; usage?: DeepseekUsage; gate?: Promise<void> }
-  | { kind: 'status'; status: number }
+  | { kind: 'status'; status: number; body?: unknown }
   | { kind: 'throw' }
   | { kind: 'break'; beforeDelta?: boolean } // 输出一段（beforeDelta 时不输出）后上游断流，没有 usage
 
@@ -33,6 +33,8 @@ export function installFetchMock() {
   const tokens = new Map<string, MockUser>()
   const deepseekCalls: unknown[] = []
   let deepseek: DeepseekBehavior = { kind: 'ok' }
+  // 依次用于接下来的若干次 DeepSeek 调用，用完后回到 deepseek。
+  const queue: DeepseekBehavior[] = []
 
   const encoder = new TextEncoder()
   const sse = (payload: unknown) => encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
@@ -49,9 +51,13 @@ export function installFetchMock() {
     }
     if (url.href === 'https://api.deepseek.com/chat/completions') {
       deepseekCalls.push(await request.json())
-      const behavior = deepseek
+      const behavior = queue.shift() ?? deepseek
       if (behavior.kind === 'throw') throw new TypeError('network error')
-      if (behavior.kind === 'status') return new Response('upstream failed', { status: behavior.status })
+      if (behavior.kind === 'status') {
+        return behavior.body === undefined
+          ? new Response('upstream failed', { status: behavior.status })
+          : Response.json(behavior.body, { status: behavior.status })
+      }
       const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
           const deltas = behavior.kind === 'ok' ? (behavior.deltas ?? ['你好', '，世界']) : ['半截']
@@ -88,6 +94,9 @@ export function installFetchMock() {
     },
     setDeepseek(behavior: DeepseekBehavior) {
       deepseek = behavior
+    },
+    queueDeepseek(...behaviors: DeepseekBehavior[]) {
+      queue.push(...behaviors)
     }
   }
 }

@@ -413,6 +413,20 @@ p {
   color: var(--color-neutral-7);
 }
 
+.la-tag[data-tone='warning'] {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+/* 明细「结果」列的失败原因 */
+.la-reason {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--color-neutral-7);
+  white-space: nowrap;
+}
+
 .la-actions {
   display: flex;
   align-items: center;
@@ -458,6 +472,73 @@ p {
 .la-table--compact th {
   padding: 6px 12px;
   font-size: 13px;
+}
+
+/* ------------------------------------------------------------------ 客户端日志 */
+
+.la-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 12px;
+}
+
+.la-select-icon {
+  display: inline-flex;
+  color: var(--color-neutral-7);
+}
+
+.la-select-icon svg {
+  transform: rotate(90deg);
+}
+
+.la-logs-pad {
+  padding: 0 20px 20px;
+}
+
+.la-log-message {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.la-log-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  font-size: 13px;
+}
+
+.la-log-meta dt {
+  color: var(--color-neutral-7);
+}
+
+.la-log-meta dd {
+  margin: 0;
+  color: var(--color-neutral-9);
+}
+
+.la-log-full {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.la-context {
+  margin: 0;
+  padding: 10px 12px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 6px;
+  background: var(--la-card);
+  box-shadow: 0 0 0 1px var(--la-hairline);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ------------------------------------------------------------------ 编辑对话框 */

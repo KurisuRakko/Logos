@@ -11,6 +11,7 @@ export type ErrorCode =
   | 'invalid_request'
   | 'not_found'
   | 'upstream_error'
+  | 'upstream_busy'
   | 'internal_error'
 
 const STATUS: Record<ErrorCode, ContentfulStatusCode> = {
@@ -24,6 +25,7 @@ const STATUS: Record<ErrorCode, ContentfulStatusCode> = {
   invalid_request: 400,
   not_found: 404,
   upstream_error: 502,
+  upstream_busy: 503,
   internal_error: 500
 }
 
@@ -38,6 +40,7 @@ export const MESSAGES: Record<ErrorCode, string> = {
   invalid_request: '请求格式不正确。',
   not_found: '请求的资源不存在。',
   upstream_error: '上游服务暂时不可用，请稍后再试。',
+  upstream_busy: '翻译服务当前繁忙，请稍后重试。',
   internal_error: '服务内部错误，请稍后再试。'
 }
 

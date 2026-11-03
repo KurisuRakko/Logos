@@ -419,6 +419,7 @@
                 "rate_limited": "請求過於頻繁，請稍後再試。",
                 "text_too_long": "原文超過 5000 字元的上限，請縮短後重試。",
                 "upstream_error": "翻譯服務暫時無法使用，請稍後重試。",
+                "upstream_busy": "翻譯服務目前繁忙，請稍後重試。",
                 "stream_interrupted": "翻譯結果不完整：與伺服器的連線意外中斷，請重試。",
                 "network": "無法連線 Logos AI 服務：{{detail}}",
                 "http": "Logos AI 服務傳回錯誤（HTTP {{status}}）。"

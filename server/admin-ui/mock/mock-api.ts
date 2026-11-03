@@ -58,9 +58,29 @@ function usageFor(sub: string, limit: number) {
       output_tokens: ok ? out : 0,
       cost_micro: cost,
       ok: ok ? 1 : 0,
+      error: ok ? null : i % 2 ? 'stream_interrupted' : 'upstream_503',
     }
   })
 }
+
+const logLevels = ['error', 'warn', 'info'] as const
+const logs = Array.from({ length: 18 }, (_, i) => {
+  const user = users[i % 4]
+  const level = logLevels[i % 3]
+  return {
+    id: 1000 - i,
+    sub: user.sub,
+    display_name: user.display_name,
+    created_at: new Date(now - i * 23 * 60_000).toISOString(),
+    level,
+    event: level === 'error' ? 'translate_failed' : level === 'warn' ? 'token_refresh_retry' : 'app_started',
+    message: level === 'error' ? '翻译请求失败：翻译服务当前繁忙，请稍后重试。' : level === 'warn' ? '访问令牌续期失败，将在 5 秒后重试。' : '应用已启动。',
+    context: level === 'error' ? { status: 503, code: 'upstream_busy', attempt: 3 } : null,
+    app_version: '0.3.1',
+    os: i % 2 ? 'windows 11' : 'macos 15.1',
+    client_time: new Date(now - i * 23 * 60_000 - 1500).toISOString(),
+  }
+})
 
 const challenges = new Map<string, string>() // login_code → code_challenge
 const accessTokens = new Map<string, number>() // access_token → 过期时刻
@@ -175,6 +195,13 @@ const handler: Connect.NextHandleFunction = (req, res, next) => {
       const limit = Number(url.searchParams.get('limit') ?? 20)
       const user = users.find((u) => u.sub === sub)
       return send(res, 200, { items: user && user.last_used_at ? usageFor(sub, limit) : [] })
+    }
+    if (req.method === 'GET' && path === '/admin/api/logs') {
+      const sub = url.searchParams.get('sub')
+      const level = url.searchParams.get('level')
+      const limit = Number(url.searchParams.get('limit') ?? 100)
+      const items = logs.filter((l) => (!sub || l.sub === sub) && (!level || l.level === level)).slice(0, limit)
+      return send(res, 200, { items })
     }
     return fail(res, 404, 'not_found', '接口不存在。')
   })().catch((err: unknown) => {
