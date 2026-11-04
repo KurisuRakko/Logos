@@ -23,3 +23,7 @@ dist-ssr
 
 # PaddleOCR models, fetched by scripts/fetch-ocr-models.mjs
 src-tauri/resources/paddle-ocr/
+
+# MSVC runtime DLLs copied from the VS redist by CI (app-local deployment)
+src-tauri/msvcp140*.dll
+src-tauri/vcruntime140*.dll

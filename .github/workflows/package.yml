@@ -40,6 +40,20 @@ jobs:
                   key: paddle-ocr-${{ hashFiles('scripts/fetch-ocr-models.mjs') }}
             - name: Download OCR models
               run: node scripts/fetch-ocr-models.mjs
+            - name: Copy MSVC runtime DLLs
+              shell: pwsh
+              run: |
+                  $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+                  if (-not $vs) { throw "Visual Studio with VC tools not found" }
+                  $redist = Get-ChildItem "$vs\VC\Redist\MSVC" -Directory | Where-Object { $_.Name -match '^\d+\.' } | Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
+                  if (-not $redist) { throw "VC redist directory not found under $vs" }
+                  $crt = Get-ChildItem "$($redist.FullName)\x64" -Directory -Filter 'Microsoft.VC14*.CRT' | Select-Object -First 1
+                  if (-not $crt) { throw "Microsoft.VC14*.CRT not found under $($redist.FullName)\x64" }
+                  Write-Host "Using $($crt.FullName)"
+                  foreach ($dll in 'msvcp140.dll', 'msvcp140_1.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
+                      Copy-Item "$($crt.FullName)\$dll" src-tauri\ -ErrorAction Stop
+                      (Get-Item "src-tauri\$dll").VersionInfo | Format-List FileName, FileVersion
+                  }
             - name: Build NSIS installer
               run: pnpm tauri build -b nsis
             - name: Check OCR models are bundled
@@ -49,6 +63,10 @@ jobs:
                   listing=$(7z l "$installer")
                   for f in ch_PP-OCRv5_det_mobile.onnx ch_PP-OCRv5_rec_mobile.onnx ppocrv5_dict.txt; do
                       echo "$listing" | grep -q "$f" || { echo "::error::$f is missing from $installer"; exit 1; }
+                  done
+                  # MSVC runtime must sit next to Logos.exe at the installer root
+                  for f in msvcp140.dll msvcp140_1.dll vcruntime140.dll vcruntime140_1.dll; do
+                      echo "$listing" | grep -qiE "[[:space:]]$f\r?$" || { echo "::error::$f is missing from the root of $installer"; exit 1; }
                   done
                   ls -l "$installer"
             - name: Upload installer

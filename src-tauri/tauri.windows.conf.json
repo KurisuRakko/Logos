@@ -5,7 +5,13 @@
             "iconAsTemplate": true
         },
         "bundle": {
-            "resources": ["resources/paddle-ocr/*"],
+            "resources": [
+                "resources/paddle-ocr/*",
+                "msvcp140.dll",
+                "msvcp140_1.dll",
+                "vcruntime140.dll",
+                "vcruntime140_1.dll"
+            ],
             "windows": {
                 "certificateThumbprint": null,
                 "digestAlgorithm": "sha256",
