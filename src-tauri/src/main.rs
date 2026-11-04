@@ -35,8 +35,80 @@ pub static APP: OnceCell<tauri::AppHandle> = OnceCell::new();
 // Text to be translated
 pub struct StringWrapper(pub Mutex<String>);
 
+const RETRY_FLAG: &str = "--logos-retry";
+
+fn panic_log_path() -> Option<std::path::PathBuf> {
+    // 与 tauri v1 app_log_dir 保持一致，不依赖 tauri 状态
+    #[cfg(target_os = "macos")]
+    let base = dirs::home_dir().map(|h| h.join("Library/Logs"));
+    #[cfg(not(target_os = "macos"))]
+    let base = dirs::config_dir();
+    let dir = base?.join("com.pot-app.desktop");
+    #[cfg(not(target_os = "macos"))]
+    let dir = dir.join("logs");
+    let _ = std::fs::create_dir_all(&dir);
+    Some(dir.join("panic.log"))
+}
+
+fn write_panic_log(msg: &str) {
+    use std::io::Write;
+    let Some(path) = panic_log_path() else { return };
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+        let _ = writeln!(
+            f,
+            "[unix {}] [v{}] [pid {}] {}",
+            ts,
+            env!("CARGO_PKG_VERSION"),
+            std::process::id(),
+            msg
+        );
+    }
+}
+
+fn install_panic_hook() {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let payload = info
+            .payload()
+            .downcast_ref::<&str>()
+            .map(|s| s.to_string())
+            .or_else(|| info.payload().downcast_ref::<String>().cloned())
+            .unwrap_or_else(|| "<non-string panic payload>".to_string());
+        let location = info
+            .location()
+            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+            .unwrap_or_else(|| "<unknown>".to_string());
+        let bt = std::backtrace::Backtrace::force_capture();
+        write_panic_log(&format!("panic at {}: {}\nbacktrace:\n{}", location, payload, bt));
+        default_hook(info);
+    }));
+}
+
+// 重启自身：子进程带 RETRY_FLAG，启动后先等待再构建，确保本进程（持有单实例锁）已退出
+fn relaunch_with_retry_flag() -> std::io::Result<()> {
+    let exe = std::env::current_exe()?;
+    let mut cmd = std::process::Command::new(exe);
+    cmd.args(std::env::args_os().skip(1)).arg(RETRY_FLAG);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd.spawn().map(|_| ())
+}
+
 fn main() {
-    tauri::Builder::default()
+    install_panic_hook();
+    let is_retry = std::env::args().any(|a| a == RETRY_FLAG);
+    if is_retry {
+        std::thread::sleep(std::time::Duration::from_millis(1500));
+    }
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, cwd| {
             Notification::new(&app.config().tauri.bundle.identifier)
                 .title("The program is already running. Please do not start it again!")
@@ -122,11 +194,28 @@ fn main() {
             logos_account_status,
             logos_account_logout
         ])
-        .on_system_tray_event(tray_event_handler)
-        .build(tauri::generate_context!())
-        .expect("error while running tauri application")
-        // 窗口关闭不退出
-        .run(|_app_handle, event| {
+        .on_system_tray_event(tray_event_handler);
+    info!("Building app");
+    let app = match builder.build(tauri::generate_context!()) {
+        Ok(app) => app,
+        Err(e) => {
+            let msg = format!("error while building tauri application: {:?}", e);
+            log::error!("{}", msg);
+            write_panic_log(&msg);
+            let is_webview_err = msg.contains("CreateWebview");
+            if is_webview_err && !is_retry {
+                match relaunch_with_retry_flag() {
+                    Ok(()) => write_panic_log("relaunched with retry flag"),
+                    Err(re) => write_panic_log(&format!("relaunch failed: {}", re)),
+                }
+            }
+            log::logger().flush();
+            std::process::exit(1);
+        }
+    };
+    info!("App built");
+    // 窗口关闭不退出
+    app.run(|_app_handle, event| {
             if let tauri::RunEvent::ExitRequested { api, .. } = event {
                 api.prevent_exit();
             }
