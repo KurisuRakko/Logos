@@ -32,7 +32,7 @@ pub struct Engine {
 fn environment() -> Result<&'static ort::environment::Environment, String> {
     static ENV: OnceLock<ort::environment::Environment> = OnceLock::new();
     static INIT: Mutex<()> = Mutex::new(());
-    let _guard = INIT.lock().unwrap();
+    let _guard = INIT.lock().unwrap_or_else(|e| e.into_inner());
     if let Some(env) = ENV.get() {
         return Ok(env);
     }
@@ -171,6 +171,10 @@ impl Engine {
 
     // Full pipeline: detection, recognition, reading-order join
     pub fn ocr(&mut self, img: &RgbImage) -> Result<String, String> {
+        // a zero-sized selection has nothing to read and would underflow the crop bounds
+        if img.width() == 0 || img.height() == 0 {
+            return Ok(String::new());
+        }
         let boxes = self.detect(img)?;
         if boxes.is_empty() {
             return Ok(String::new());
