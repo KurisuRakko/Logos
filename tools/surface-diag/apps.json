@@ -1,0 +1,49 @@
+{
+  "server": {
+    "host": "100.114.125.104",
+    "user": "rakko",
+    "identityFile": "%USERPROFILE%\\.ssh\\rakkoserver_ed25519",
+    "remoteDir": "diag/surface"
+  },
+  "maxOutbox": 50,
+  "maxLookbackHours": 24,
+  "apps": [
+    {
+      "name": "Logos",
+      "processNames": [
+        "Logos",
+        "pot"
+      ],
+      "exeNames": [
+        "Logos.exe",
+        "pot.exe"
+      ],
+      "exeCandidates": [
+        "%LOCALAPPDATA%\\Logos\\Logos.exe",
+        "%ProgramFiles%\\Logos\\Logos.exe",
+        "%ProgramFiles(x86)%\\Logos\\Logos.exe"
+      ],
+      "uninstallDisplayName": "Logos",
+      "expectRunning": true,
+      "usesWebView2": true,
+      "logDir": "%APPDATA%\\com.pot-app.desktop\\logs",
+      "logs": [
+        {
+          "file": "Logos.log",
+          "tailLines": 400,
+          "dropPattern": "\\[TRACE\\]",
+          "watch": true
+        },
+        {
+          "file": "panic.log",
+          "full": true,
+          "panic": true
+        }
+      ],
+      "otherLogTailLines": 200,
+      "errorPattern": "\\[ERROR\\]",
+      "configFile": "%APPDATA%\\com.pot-app.desktop\\config.json",
+      "configKeepPattern": "^hotkey_"
+    }
+  ]
+}
