@@ -5,6 +5,7 @@
             "iconAsTemplate": true
         },
         "bundle": {
+            "resources": ["resources/paddle-ocr/*"],
             "windows": {
                 "certificateThumbprint": null,
                 "digestAlgorithm": "sha256",

@@ -33,8 +33,24 @@ jobs:
                   workspaces: src-tauri
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
+            - name: Cache OCR models
+              uses: actions/cache@v4
+              with:
+                  path: src-tauri/resources/paddle-ocr
+                  key: paddle-ocr-${{ hashFiles('scripts/fetch-ocr-models.mjs') }}
+            - name: Download OCR models
+              run: node scripts/fetch-ocr-models.mjs
             - name: Build NSIS installer
               run: pnpm tauri build -b nsis
+            - name: Check OCR models are bundled
+              shell: bash
+              run: |
+                  installer=$(ls src-tauri/target/release/bundle/nsis/*.exe | head -n 1)
+                  listing=$(7z l "$installer")
+                  for f in ch_PP-OCRv5_det_mobile.onnx ch_PP-OCRv5_rec_mobile.onnx ppocrv5_dict.txt; do
+                      echo "$listing" | grep -q "$f" || { echo "::error::$f is missing from $installer"; exit 1; }
+                  done
+                  ls -l "$installer"
             - name: Upload installer
               uses: actions/upload-artifact@v4
               with:

@@ -1,0 +1,14 @@
+[package]
+name = "logos-ocr"
+version = "0.1.0"
+description = "PaddleOCR (PP-OCRv5 mobile) inference on ONNX Runtime for Logos"
+license = "GPL-3.0-only"
+edition = "2021"
+publish = false
+
+[dependencies]
+# CPU execution provider only; the prebuilt static ONNX Runtime is linked into the binary
+ort = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "download-binaries", "tls-rustls"] }
+image = { version = "0.25.4", default-features = false, features = ["png"] }
+num_cpus = "1.16"
+log = "0.4"

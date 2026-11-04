@@ -322,6 +322,8 @@ pub fn image_translate() {
 
 #[cfg(not(target_os = "macos"))]
 fn screenshot_window() -> Window {
+    // Load the local OCR models while the user is still selecting a region
+    crate::paddle_ocr::preload();
     // A visible translate window would end up in the capture
     if let Some(translate) = APP.get().unwrap().get_window("translate") {
         if translate.is_visible().unwrap_or(false) {

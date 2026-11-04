@@ -7,6 +7,7 @@ mod error;
 mod hotkey;
 mod lang_detect;
 mod logos_account;
+mod paddle_ocr;
 mod screenshot;
 mod system_ocr;
 mod tray;
@@ -19,6 +20,7 @@ use lang_detect::*;
 use logos_account::*;
 use log::info;
 use once_cell::sync::OnceCell;
+use paddle_ocr::paddle_ocr;
 use screenshot::{get_screenshot_target, screenshot};
 use std::sync::Mutex;
 use system_ocr::*;
@@ -179,6 +181,7 @@ fn main() {
             get_base64,
             copy_img,
             system_ocr,
+            paddle_ocr,
             set_proxy,
             unset_proxy,
             text_translate,
