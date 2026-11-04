@@ -11,6 +11,7 @@ import SourceArea from './components/SourceArea';
 import TargetArea from './components/TargetArea';
 import { osType } from '../../utils/env';
 import { useConfig, useServiceInstanceList } from '../../hooks';
+import { DEFAULT_RECOGNIZE_SERVICE_LIST } from '../../utils/service_instance';
 import { store, getSnapshot } from '../../utils/store';
 import { dismissWindow, WINDOW_HIDE_EVENT } from '../../utils/window';
 import { info } from 'tauri-plugin-log-api';
@@ -121,7 +122,10 @@ export default function Translate() {
         'translate_service_list',
         ['deepl', 'bing', 'lingva', 'yandex', 'google', 'ecdict']
     );
-    const [recognizeServiceInstanceList] = useServiceInstanceList('recognize_service_list', ['system']);
+    const [recognizeServiceInstanceList] = useServiceInstanceList(
+        'recognize_service_list',
+        DEFAULT_RECOGNIZE_SERVICE_LIST
+    );
     const [hideLanguage] = useConfig('hide_language', false);
     const [pined, setPined] = useState(false);
     const rootRef = useRef(null);

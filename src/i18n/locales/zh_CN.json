@@ -327,6 +327,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "本地 OCR（PaddleOCR）"
+                },
                 "system": {
                     "title": "系统 OCR"
                 },

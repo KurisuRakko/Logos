@@ -7,6 +7,11 @@
             "write_clipboard": "클립보드에 작성"
         },
         "services": {
+            "recognize": {
+                "paddle": {
+                    "title": "로컬 OCR (PaddleOCR)"
+                }
+            },
             "translate": {
                 "lingva": {
                     "title": "Lingva"

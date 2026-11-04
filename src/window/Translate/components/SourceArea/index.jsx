@@ -25,7 +25,7 @@ import { LuDelete, LuImage } from 'react-icons/lu';
 import { GiCycle } from 'react-icons/gi';
 import { invoke } from '@tauri-apps/api';
 import { atom, useAtom, useSetAtom } from 'jotai';
-import { getServiceName } from '../../../../utils/service_instance';
+import { DEFAULT_RECOGNIZE_SERVICE_LIST, getServiceName } from '../../../../utils/service_instance';
 import { useConfig, useServiceInstanceList, useSyncAtom } from '../../../../hooks';
 import { dismissWindow, WINDOW_HIDE_EVENT } from '../../../../utils/window';
 import * as recognizeServices from '../../../../services/recognize';
@@ -48,7 +48,10 @@ export default function SourceArea(props) {
     const [recognizeDeleteNewline] = useConfig('recognize_delete_newline', false);
     const [recognizeAutoCopy] = useConfig('recognize_auto_copy', false);
     const [showImage, setShowImage] = useConfig('image_translate_show_image', false);
-    const [recognizeServiceList] = useServiceInstanceList('recognize_service_list', ['system']);
+    const [recognizeServiceList] = useServiceInstanceList(
+        'recognize_service_list',
+        DEFAULT_RECOGNIZE_SERVICE_LIST
+    );
     const [hideWindow] = useConfig('translate_hide_window', false);
     const [hideSource] = useConfig('hide_source', false);
     const [windowType, setWindowType] = useState('[SELECTION_TRANSLATE]');

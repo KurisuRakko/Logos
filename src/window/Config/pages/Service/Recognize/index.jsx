@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useToastStyle } from '../../../../../hooks';
 import { osType } from '../../../../../utils/env';
 import { useServiceInstanceList, deleteKey } from '../../../../../hooks';
+import { DEFAULT_RECOGNIZE_SERVICE_LIST } from '../../../../../utils/service_instance';
 import ServiceItem from './ServiceItem';
 import SelectModal from './SelectModal';
 import ConfigModal from './ConfigModal';
@@ -18,7 +19,7 @@ export default function Recognize() {
     // now it's service instance list
     const [recognizeServiceInstanceList, setRecognizeServiceInstanceList] = useServiceInstanceList(
         'recognize_service_list',
-        ['system']
+        DEFAULT_RECOGNIZE_SERVICE_LIST
     );
 
     const { t } = useTranslation();

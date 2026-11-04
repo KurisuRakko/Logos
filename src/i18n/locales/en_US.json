@@ -327,6 +327,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "Local OCR (PaddleOCR)"
+                },
                 "system": {
                     "title": "System OCR"
                 },

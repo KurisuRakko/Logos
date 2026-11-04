@@ -324,6 +324,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "本機 OCR（PaddleOCR）"
+                },
                 "system": {
                     "title": "系統 OCR"
                 },

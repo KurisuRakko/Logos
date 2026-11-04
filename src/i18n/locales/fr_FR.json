@@ -136,6 +136,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "OCR locale (PaddleOCR)"
+                },
                 "iflytek_latex_ocr": {
                     "apikey": "Clé d'API",
                     "title": "LaTeX iFlyTek",

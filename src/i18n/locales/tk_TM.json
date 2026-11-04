@@ -1,5 +1,12 @@
 {
     "translation": {
+        "services": {
+            "recognize": {
+                "paddle": {
+                    "title": "Ýerli OCR (PaddleOCR)"
+                }
+            }
+        },
         "config": {
             "general": {
                 "default_font": "Bellenen",

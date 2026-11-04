@@ -3,6 +3,9 @@ export enum ServiceType {
     RECOGNIZE = 'recognize',
 }
 
+// Local PaddleOCR first, the OS engine as the fallback service
+export const DEFAULT_RECOGNIZE_SERVICE_LIST = ['paddle', 'system'];
+
 // Plugin services were removed. Configs inherited from pot-desktop may still list
 // instance keys starting with "plugin" or services dropped from pot-lite, so drop them
 // whenever a service list is read.

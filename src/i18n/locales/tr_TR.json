@@ -4,6 +4,11 @@
             "ok": "Ok"
         },
         "services": {
+            "recognize": {
+                "paddle": {
+                    "title": "Yerel OCR (PaddleOCR)"
+                }
+            },
             "translate": {
                 "lingva": {
                     "title": "Lingva"

@@ -308,6 +308,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "Локальный OCR (PaddleOCR)"
+                },
                 "system": {
                     "title": "Системный OCR"
                 },

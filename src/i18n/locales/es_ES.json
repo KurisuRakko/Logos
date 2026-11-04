@@ -237,6 +237,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "OCR local (PaddleOCR)"
+                },
                 "baidu_ocr": {
                     "title": "Baidu OCR"
                 },

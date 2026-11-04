@@ -1,4 +1,5 @@
 // Config UIs live apart from the service logic so only the config window bundles them
+export { Config as paddle } from './paddle/Config';
 export { Config as system } from './system/Config';
 export { Config as baidu_ocr } from './baidu/Config';
 export { Config as baidu_accurate_ocr } from './baidu_accurate/Config';

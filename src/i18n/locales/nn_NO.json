@@ -4,6 +4,11 @@
             "ok": "Ok"
         },
         "services": {
+            "recognize": {
+                "paddle": {
+                    "title": "Lokal OCR (PaddleOCR)"
+                }
+            },
             "translate": {
                 "lingva": {
                     "title": "Lingva"

@@ -109,6 +109,9 @@
                 }
             },
             "recognize": {
+                "paddle": {
+                    "title": "ローカル OCR（PaddleOCR）"
+                },
                 "volcengine_ocr": {
                     "appid": "アプリID"
                 },
