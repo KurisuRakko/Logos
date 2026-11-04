@@ -110,7 +110,12 @@ fn build_window(label: &str, title: &str) -> (Window, bool) {
                 #[cfg(not(target_os = "linux"))]
                 set_shadow(&window, true).unwrap_or_default();
                 #[cfg(target_os = "windows")]
-                round_corners(&window);
+                round_corners(&window, true);
+            } else {
+                // The overlay covers the whole monitor; Windows 11 would otherwise round it
+                // because the undecorated window still carries WS_CAPTION
+                #[cfg(target_os = "windows")]
+                round_corners(&window, false);
             }
             let _ = window.current_monitor();
             (window, false)
@@ -120,14 +125,18 @@ fn build_window(label: &str, title: &str) -> (Window, bool) {
 
 // Windows 11 does not round undecorated windows by itself; earlier versions ignore the attribute
 #[cfg(target_os = "windows")]
-fn round_corners(window: &Window) {
+fn round_corners(window: &Window, round: bool) {
     use windows::Win32::Foundation::HWND;
     use windows::Win32::Graphics::Dwm::{
-        DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND,
+        DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_DONOTROUND, DWMWCP_ROUND,
     };
 
     if let Ok(hwnd) = window.hwnd() {
-        let preference = DWMWCP_ROUND;
+        let preference = if round {
+            DWMWCP_ROUND
+        } else {
+            DWMWCP_DONOTROUND
+        };
         unsafe {
             let _ = DwmSetWindowAttribute(
                 HWND(hwnd.0 as _),
@@ -137,6 +146,30 @@ fn round_corners(window: &Window) {
             );
         }
     }
+}
+
+// Monitor whose origin is exactly (x, y); falls back to the monitor under that point
+fn get_monitor_at(x: i32, y: i32) -> Monitor {
+    let monitors = get_daemon_window().available_monitors().unwrap_or_default();
+    match monitors
+        .into_iter()
+        .find(|m| m.position().x == x && m.position().y == y)
+    {
+        Some(m) => m,
+        None => get_current_monitor(x, y),
+    }
+}
+
+// Move and resize a hidden window without showing it (physical pixels).
+// Moving onto a monitor with another DPI makes tao handle WM_DPICHANGED, which rescales
+// and may shift the window, so the rect is applied again once it is on the new monitor
+fn place_window(window: &Window, x: i32, y: i32, width: u32, height: u32) {
+    let position = tauri::PhysicalPosition::new(x, y);
+    window.set_position(position).unwrap_or_default();
+    window
+        .set_size(tauri::PhysicalSize::new(width, height))
+        .unwrap_or_default();
+    window.set_position(position).unwrap_or_default();
 }
 
 // Bring a reused window back and tell the page it has been reactivated
@@ -160,7 +193,9 @@ pub fn config_window() {
     }
 }
 
-fn translate_window() -> Window {
+// `center_on`: show the window in the middle of this monitor instead of following
+// `translate_window_position` (used for screenshot translation)
+fn translate_window(center_on: Option<Monitor>) -> Window {
     use mouse_position::mouse_position::{Mouse, Position};
     // Mouse physical position
     let mut mouse_position = match Mouse::get_mouse_position() {
@@ -187,6 +222,28 @@ fn translate_window() -> Window {
             420
         }
     };
+
+    if let Some(monitor) = center_on {
+        // Placed while still hidden, so the window never appears anywhere else first
+        let dpi = monitor.scale_factor();
+        let window_width = ((width as f64) * dpi) as i32;
+        let window_height = ((height as f64) * dpi) as i32;
+        let monitor_position = monitor.position();
+        let monitor_size = monitor.size();
+        let x = monitor_position.x + (monitor_size.width as i32 - window_width) / 2;
+        let y = monitor_position.y + (monitor_size.height as i32 - window_height) / 2;
+        place_window(
+            &window,
+            x,
+            y,
+            window_width.max(1) as u32,
+            window_height.max(1) as u32,
+        );
+        if exists {
+            reactivate(&window, true);
+        }
+        return window;
+    }
 
     let monitor = window.current_monitor().unwrap().unwrap();
     let dpi = monitor.scale_factor();
@@ -272,7 +329,7 @@ pub fn selection_translate() {
         state.0.lock().unwrap().replace_range(.., &text);
     }
 
-    let window = translate_window();
+    let window = translate_window(None);
     window.emit("new_text", text).unwrap();
 }
 
@@ -283,7 +340,7 @@ pub fn text_translate(text: String) {
         let state: tauri::State<StringWrapper> = app_handle.state();
         state.0.lock().unwrap().replace_range(.., &text);
     }
-    let window = translate_window();
+    let window = translate_window(None);
     window.emit("new_text", text).unwrap();
 }
 
@@ -296,7 +353,7 @@ pub fn input_translate() {
         .lock()
         .unwrap()
         .replace_range(.., "[INPUT_TRANSLATE]");
-    let window = translate_window();
+    let window = translate_window(None);
     let position_type = match get("translate_window_position") {
         Some(v) => v.as_str().unwrap().to_string(),
         None => "mouse".to_string(),
@@ -316,7 +373,19 @@ pub fn image_translate() {
         .lock()
         .unwrap()
         .replace_range(.., "[IMAGE_TRANSLATE]");
-    let window = translate_window();
+    // Center on the monitor the screenshot was taken on (mouse monitor when there is none)
+    let target = *crate::screenshot::SCREENSHOT_TARGET.lock().unwrap();
+    let monitor = match target {
+        Some((x, y)) => get_monitor_at(x, y),
+        None => {
+            use mouse_position::mouse_position::Mouse;
+            match Mouse::get_mouse_position() {
+                Mouse::Position { x, y } => get_current_monitor(x, y),
+                Mouse::Error => get_current_monitor(0, 0),
+            }
+        }
+    };
+    let window = translate_window(Some(monitor));
     window.emit("new_text", "[IMAGE_TRANSLATE]").unwrap();
 }
 
@@ -339,28 +408,17 @@ fn screenshot_window() -> Window {
         Mouse::Position { x, y } => (x, y),
         Mouse::Error => (0, 0),
     };
-    let position = *get_current_monitor(x, y).position();
+    let monitor = get_current_monitor(x, y);
+    let position = *monitor.position();
+    let size = *monitor.size();
     *crate::screenshot::SCREENSHOT_TARGET.lock().unwrap() = Some((position.x, position.y));
 
-    if exists {
-        // Move the reused window to the target monitor before going fullscreen again
-        window.set_fullscreen(false).unwrap_or_default();
-        window
-            .set_position(tauri::PhysicalPosition::new(position.x, position.y))
-            .unwrap_or_default();
-    }
     window.set_skip_taskbar(true).unwrap();
-    #[cfg(target_os = "macos")]
-    {
-        let monitor = window.current_monitor().unwrap().unwrap();
-        let size = monitor.size();
-        window.set_decorations(false).unwrap();
-        window.set_size(*size).unwrap();
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    window.set_fullscreen(true).unwrap();
-
+    // Cover the monitor with an undecorated topmost window instead of set_fullscreen:
+    // leaving tao's fullscreen calls SetWindowPlacement with the placement saved on entry,
+    // whose showCmd is SW_SHOWNORMAL even for a hidden window, so the reused window showed
+    // up at its pre-fullscreen rect (the monitor origin) until the next style update hid it
+    place_window(&window, position.x, position.y, size.width, size.height);
     window.set_always_on_top(true).unwrap();
     if exists {
         // Not shown here: the page captures the screen first and shows itself once the
