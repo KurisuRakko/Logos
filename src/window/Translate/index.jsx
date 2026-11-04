@@ -294,7 +294,10 @@ export default function Translate() {
                 className='fixed top-[5px] left-[5px] right-[5px] h-[30px]'
                 data-tauri-drag-region='true'
             />
-            <div className={`h-[35px] w-full flex ${osType === 'Darwin' ? 'justify-end' : 'justify-between'}`}>
+            <div
+                data-window-enter
+                style={{ '--logos-enter-index': 0 }}
+                className={`h-[35px] w-full flex ${osType === 'Darwin' ? 'justify-end' : 'justify-between'}`}>
                 <Button
                     isIconOnly
                     size='sm'
@@ -324,10 +327,17 @@ export default function Translate() {
             </div>
             <div className={`${osType === 'Linux' ? 'h-[calc(100vh-37px)]' : 'h-[calc(100vh-35px)]'} px-[8px]`}>
                 <div className='h-full overflow-y-auto'>
-                    <div>
+                    <div
+                        data-window-enter
+                        style={{ '--logos-enter-index': 1 }}
+                    >
                         <SourceArea serviceInstanceConfigMap={serviceInstanceConfigMap} />
                     </div>
-                    <div className={`${hideLanguage && 'hidden'}`}>
+                    <div
+                        data-window-enter
+                        style={{ '--logos-enter-index': 2 }}
+                        className={`${hideLanguage && 'hidden'}`}
+                    >
                         <LanguageArea />
                         <Spacer y={2} />
                     </div>
@@ -345,6 +355,13 @@ export default function Translate() {
                                         translateServiceInstanceList.map((serviceInstanceKey, index) => {
                                             const config = serviceInstanceConfigMap[serviceInstanceKey] ?? {};
                                             const enable = config['enable'] ?? true;
+                                            // entrance order among enabled cards, after the three blocks above
+                                            const enterIndex = Math.min(
+                                                3 + translateServiceInstanceList
+                                                    .slice(0, index)
+                                                    .filter((key) => serviceInstanceConfigMap[key]?.['enable'] ?? true).length,
+                                                6
+                                            );
 
                                             return enable ? (
                                                 <Draggable
@@ -356,6 +373,11 @@ export default function Translate() {
                                                         <div
                                                             ref={provided.innerRef}
                                                             {...provided.draggableProps}
+                                                            data-window-enter
+                                                            style={{
+                                                                ...provided.draggableProps.style,
+                                                                '--logos-enter-index': enterIndex,
+                                                            }}
                                                         >
                                                             <TargetArea
                                                                 {...provided.dragHandleProps}

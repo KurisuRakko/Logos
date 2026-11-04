@@ -76,11 +76,31 @@ html {
 }
 
 /* the translate window is reused and replays this on every activation; only its content moves,
-   the window background stays put */
-.logos-window-enter > * {
-    animation-name: logos-rise, logos-fade-in;
-    animation-duration: var(--motion-spring-smooth-duration), var(--motion-duration-enter);
+   the window background stays put. Blocks (title bar, source, language, each result card) carry
+   data-window-enter and rise in one after another, 45ms apart via --logos-enter-index. Individual
+   translate/scale properties compose with the transform react-beautiful-dnd sets while dragging,
+   and backwards fill keeps nothing once the motion has finished */
+@keyframes logos-window-rise {
+    from {
+        translate: 0 18px;
+        scale: 0.97;
+    }
+}
+
+@keyframes logos-window-clear {
+    from {
+        opacity: 0;
+        filter: blur(1px);
+    }
+}
+
+.logos-window-enter [data-window-enter] {
+    transform-origin: center;
+    animation-name: logos-window-rise, logos-window-clear;
+    animation-duration: var(--motion-spring-smooth-duration), 320ms;
     animation-timing-function: var(--motion-spring-smooth), var(--motion-ease-standard);
+    animation-delay: calc(var(--logos-enter-index, 0) * 45ms);
+    animation-fill-mode: backwards;
 }
 
 /* settings page switch: critically damped page spring, no overshoot */
@@ -267,5 +287,13 @@ button.group[data-ripple]:focus-visible:not([data-focus-visible='true']) {
         animation-delay: 0s !important;
         transition-duration: 1ms !important;
         transition-delay: 0s !important;
+    }
+
+    /* the translate window keeps a plain 120ms fade, without movement or blur */
+    .logos-window-enter [data-window-enter] {
+        animation-name: logos-fade-in !important;
+        animation-duration: 120ms !important;
+        animation-timing-function: var(--motion-ease-standard) !important;
+        animation-delay: 0s !important;
     }
 }
