@@ -118,3 +118,58 @@ export async function fetchLogosQuota() {
         throw e;
     }
 }
+
+const MT_ERROR_KEYS = [
+    'bad_request',
+    'text_too_long',
+    'unsupported_language',
+    'quota_exhausted',
+    'provider_not_configured',
+    'upstream_error',
+];
+
+// POST /v1/mt: plain machine translation billed against the account's monthly free allowance.
+// provider is 'baidu' or 'fallback'; from/to are Logos language keys. Errors come back flat as
+// {error, message}, unlike the {error: {code, message}} of the Logos AI endpoints.
+export async function logosMachineTranslate(provider, text, from, to) {
+    let token;
+    try {
+        token = await getLogosAccessToken();
+    } catch (e) {
+        if (e?.code === 'not_logged_in') {
+            throw new LogosApiError('not_logged_in', i18n.t('logos_account.mt_error.not_logged_in'));
+        }
+        throw e;
+    }
+    let res;
+    try {
+        res = await window.fetch(`${logosApiBase()}/v1/mt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ provider, text, from, to }),
+        });
+    } catch (e) {
+        throw new LogosApiError('network_error', i18n.t('logos_account.mt_error.network', { detail: String(e) }));
+    }
+    let body = null;
+    try {
+        body = await res.json();
+    } catch {
+        // non-JSON body, handled by the status checks below
+    }
+    if (!res.ok) {
+        const error = body?.error;
+        const code = (typeof error === 'string' ? error : error?.code) ?? `http_${res.status}`;
+        if (MT_ERROR_KEYS.includes(code)) {
+            throw new LogosApiError(code, i18n.t(`logos_account.mt_error.${code}`));
+        }
+        if (code === 'unauthorized' || code === 'rate_limited') {
+            throw new LogosApiError(code, i18n.t(`logos_account.error.${code}`));
+        }
+        throw new LogosApiError(code, i18n.t('logos_account.mt_error.http', { status: res.status }));
+    }
+    if (typeof body?.text !== 'string') {
+        throw new LogosApiError('bad_response', i18n.t('logos_account.mt_error.http', { status: res.status }));
+    }
+    return body.text;
+}

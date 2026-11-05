@@ -234,6 +234,9 @@
                 },
                 "bing": {
                     "title": "Bing"
+                },
+                "logos_baidu": {
+                    "title": "Traductor de Baidu"
                 }
             },
             "recognize": {

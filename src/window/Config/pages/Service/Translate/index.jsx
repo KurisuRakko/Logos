@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useToastStyle } from '../../../../../hooks';
 import { osType } from '../../../../../utils/env';
 import { useServiceInstanceList, deleteKey } from '../../../../../hooks';
+import { DEFAULT_TRANSLATE_SERVICE_LIST } from '../../../../../utils/service_instance';
 import ServiceItem from './ServiceItem';
 import SelectModal from './SelectModal';
 import ConfigModal from './ConfigModal';
@@ -18,7 +19,7 @@ export default function Translate() {
     // now it's service instance list
     const [translateServiceInstanceList, setTranslateServiceInstanceList] = useServiceInstanceList(
         'translate_service_list',
-        ['deepl', 'bing', 'lingva', 'yandex', 'google', 'ecdict']
+        DEFAULT_TRANSLATE_SERVICE_LIST
     );
 
     const { t } = useTranslation();

@@ -115,6 +115,9 @@
                 },
                 "bing": {
                     "title": "Bing"
+                },
+                "logos_baidu": {
+                    "title": "Baidu Traduttore"
                 }
             },
             "recognize": {

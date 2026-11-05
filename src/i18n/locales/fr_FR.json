@@ -133,6 +133,9 @@
                 },
                 "ecdict": {
                     "title": "ECDict (en ligne)"
+                },
+                "logos_baidu": {
+                    "title": "Baidu Traduction"
                 }
             },
             "recognize": {

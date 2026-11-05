@@ -106,6 +106,9 @@
                 },
                 "deepl": {
                     "type": "サービスの種類"
+                },
+                "logos_baidu": {
+                    "title": "Baidu 翻訳"
                 }
             },
             "recognize": {

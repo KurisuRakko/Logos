@@ -1,7 +1,61 @@
 import { fetch } from '@tauri-apps/api/http';
 
+import { logosMachineTranslate } from '../../../utils/logos_account';
+import { remoteLog } from '../../../utils/remote_log';
+import { Language } from './info';
+
+// seconds; the web endpoint is unreachable from some networks and would otherwise hang
+const GOOGLE_TIMEOUT = 4;
+
+// Google language code -> Logos language key for the logos-api fallback. Where several keys
+// share a code (pt, no) the first one listed in Language wins.
+const LOGOS_LANGUAGE_KEY = {};
+for (const [key, code] of Object.entries(Language)) {
+    if (!(code in LOGOS_LANGUAGE_KEY)) {
+        LOGOS_LANGUAGE_KEY[code] = key;
+    }
+}
+
+// Google's web endpoint first; when it fails and the user is signed in to a Logos account,
+// logos-api (POST /v1/mt, provider=fallback) answers instead. If both fail the Google error is
+// what the user sees.
 export async function translate(text, from, to, options = {}) {
-    const { config } = options;
+    let googleError;
+    try {
+        return await translateWithGoogle(text, from, to, options);
+    } catch (e) {
+        googleError = e;
+    }
+    const logosFrom = LOGOS_LANGUAGE_KEY[from];
+    const logosTo = LOGOS_LANGUAGE_KEY[to];
+    if (logosFrom === undefined || logosTo === undefined) {
+        throw googleError;
+    }
+    const started = Date.now();
+    try {
+        const result = await logosMachineTranslate('fallback', text, logosFrom, logosTo);
+        // only metadata; the text itself never leaves the client through logs
+        remoteLog('info', 'google_fallback_ok', '', {
+            duration_ms: Date.now() - started,
+            text_length: text.length,
+        });
+        return result.trim();
+    } catch (e) {
+        if (e?.code !== 'not_logged_in') {
+            remoteLog('warn', 'google_fallback_failed', e?.message ?? String(e), {
+                code: e?.code ?? 'unknown',
+                duration_ms: Date.now() - started,
+                from: logosFrom,
+                to: logosTo,
+                text_length: text.length,
+            });
+        }
+        throw googleError;
+    }
+}
+
+async function translateWithGoogle(text, from, to, options) {
+    const { config = {} } = options;
 
     let { custom_url } = config;
 
@@ -16,6 +70,7 @@ export async function translate(text, from, to, options = {}) {
         `${custom_url}/translate_a/single?dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t`,
         {
             method: 'GET',
+            timeout: GOOGLE_TIMEOUT,
             headers: { 'content-type': 'application/json' },
             query: {
                 client: 'gtx',
@@ -34,6 +89,9 @@ export async function translate(text, from, to, options = {}) {
     );
     if (res.ok) {
         let result = res.data;
+        if (!Array.isArray(result) || !Array.isArray(result[0])) {
+            throw 'Unexpected response from Google Translate';
+        }
         // 词典模式
         if (result[1]) {
             let target = { pronunciations: [], explanations: [], associations: [], sentence: [] };

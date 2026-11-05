@@ -21,3 +21,4 @@ export { Config as ollama } from './ollama/Config';
 export { Config as ecdict } from './ecdict/Config';
 export { Config as lingva } from './lingva/Config';
 export { Config as logos_ai } from './logos_ai/Config';
+export { Config as logos_baidu } from './logos_baidu/Config';

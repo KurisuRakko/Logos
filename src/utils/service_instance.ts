@@ -3,6 +3,9 @@ export enum ServiceType {
     RECOGNIZE = 'recognize',
 }
 
+// Logos AI first; the rest need no key of their own (logos_baidu runs on the Logos account)
+export const DEFAULT_TRANSLATE_SERVICE_LIST = ['logos_ai', 'bing', 'logos_baidu', 'google'];
+
 // Local PaddleOCR first, the OS engine as the fallback service
 export const DEFAULT_RECOGNIZE_SERVICE_LIST = ['paddle', 'system'];
 

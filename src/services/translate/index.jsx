@@ -20,6 +20,7 @@ import * as _ollama from './ollama';
 import * as _ecdict from './ecdict';
 import * as _lingva from './lingva';
 import * as _logos_ai from './logos_ai';
+import * as _logos_baidu from './logos_baidu';
 
 export const deepl = _deepl;
 export const bing = _bing;
@@ -43,3 +44,4 @@ export const ollama = _ollama;
 export const ecdict = _ecdict;
 export const lingva = _lingva;
 export const logos_ai = _logos_ai;
+export const logos_baidu = _logos_baidu;

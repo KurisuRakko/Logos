@@ -324,6 +324,10 @@
                 "logos_ai": {
                     "title": "Logos AI",
                     "description": "Logos AI requires no API key. Sign in on the Logos Account page in Settings before use."
+                },
+                "logos_baidu": {
+                    "title": "Baidu Translate",
+                    "description": "This Baidu Translate service is provided through your Logos account. No API key is required, and a monthly free allowance is included. Sign in on the Logos Account page in Settings before use."
                 }
             },
             "recognize": {
@@ -428,6 +432,17 @@
                 "stream_interrupted": "The translation is incomplete because the connection was interrupted. Please try again.",
                 "network": "Unable to reach the Logos AI service: {{detail}}",
                 "http": "The Logos AI service returned an error (HTTP {{status}})."
+            },
+            "mt_error": {
+                "not_logged_in": "You are not signed in to a Logos account. Sign in on the Logos Account page in Settings to use this translation service.",
+                "quota_exhausted": "The free allowance for this month has been used up. It will be restored at the beginning of next month.",
+                "bad_request": "The translation request is invalid. Please check the source text and language settings.",
+                "text_too_long": "The source text exceeds the length limit of this translation service. Please shorten it and try again.",
+                "unsupported_language": "This translation service does not support the selected language.",
+                "provider_not_configured": "This translation service has not been configured on the server and is currently unavailable.",
+                "upstream_error": "The translation service is temporarily unavailable. Please try again later.",
+                "network": "Unable to connect to the Logos translation service: {{detail}}",
+                "http": "The Logos translation service returned an error (HTTP {{status}})."
             }
         }
     }

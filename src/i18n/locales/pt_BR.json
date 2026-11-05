@@ -305,6 +305,9 @@
                 },
                 "ecdict": {
                     "title": "ECDict(Online)"
+                },
+                "logos_baidu": {
+                    "title": "Tradutor Baidu"
                 }
             },
             "recognize": {

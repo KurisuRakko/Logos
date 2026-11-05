@@ -377,6 +377,9 @@
                 },
                 "lingva": {
                     "title": "Lingva"
+                },
+                "logos_baidu": {
+                    "title": "Baidu Перекладач"
                 }
             },
             "instance_name": "Назва конфігурації"

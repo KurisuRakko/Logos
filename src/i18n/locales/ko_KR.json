@@ -52,6 +52,9 @@
                     "request_path": "경로 요청",
                     "api_key": "API 키",
                     "model": "모델"
+                },
+                "logos_baidu": {
+                    "title": "Baidu 번역"
                 }
             },
             "help": "설정 방법 안내",

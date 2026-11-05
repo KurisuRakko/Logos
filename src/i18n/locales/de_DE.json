@@ -286,6 +286,9 @@
                 "caiyun": {
                     "title": "Caiyun",
                     "token": "Token"
+                },
+                "logos_baidu": {
+                    "title": "Baidu Übersetzung"
                 }
             },
             "recognize": {
