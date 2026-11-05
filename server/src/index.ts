@@ -6,9 +6,11 @@ import { bearerToken, verifyToken } from './auth'
 import type { AppEnv, Env } from './env'
 import { errorResponse } from './errors'
 import { handleLogUpload, purgeExpiredLogs } from './logs'
+import { handleMt, mtErrorResponse } from './mt'
 import { handleTranslate } from './translate'
 
 export { GlobalQuota } from './quota/global-quota'
+export { MtQuota } from './quota/mt-quota'
 export { UserQuota } from './quota/user-quota'
 
 export const ALLOWED_ORIGINS = [
@@ -33,10 +35,13 @@ app.use(
 )
 
 const authenticate = createMiddleware<AppEnv>(async (c, next) => {
+  // /v1/mt 的错误体是扁平形状，鉴权失败也按它返回。
+  const fail = (code: 'unauthorized' | 'upstream_error') =>
+    c.req.path === '/v1/mt' ? mtErrorResponse(code) : errorResponse(code)
   const token = bearerToken(c.req.header('Authorization'))
-  if (!token) return errorResponse('unauthorized')
+  if (!token) return fail('unauthorized')
   const result = await verifyToken(c.env, token)
-  if (!result.ok) return errorResponse(result.reason)
+  if (!result.ok) return fail(result.reason)
   c.set('identity', result.identity)
   await next()
 })
@@ -45,6 +50,7 @@ app.use('/admin/api/*', authenticate)
 
 app.post('/v1/translate', handleTranslate)
 app.post('/v1/logs', handleLogUpload)
+app.post('/v1/mt', handleMt)
 
 app.get('/v1/quota', async (c) => {
   const sub = c.get('identity').sub

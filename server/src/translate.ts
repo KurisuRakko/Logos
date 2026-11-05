@@ -177,16 +177,18 @@ async function logUsage(b: Billing, usage: Usage, cost: number, error: string | 
         error
       )
   ]
-  const name = displayNameOf(b.identity)
-  if (name) {
-    // 记下 Phainon 的显示名供管理页展示；管理员手动设置过的不覆盖。
-    statements.push(
-      db
-        .prepare(
-          'INSERT INTO user_settings (sub, display_name, limit_micro, disabled, updated_at) VALUES (?, ?, NULL, 0, ?) ON CONFLICT(sub) DO UPDATE SET display_name = COALESCE(user_settings.display_name, excluded.display_name)'
-        )
-        .bind(b.identity.sub, name, at)
-    )
-  }
+  const remember = rememberDisplayName(db, b.identity, at)
+  if (remember) statements.push(remember)
   await db.batch(statements).catch((err) => console.error('usage_log write failed', err))
+}
+
+// 记下 Phainon 的显示名供管理页展示；管理员手动设置过的不覆盖。没有可用显示名时返回 null。
+export function rememberDisplayName(db: D1Database, identity: Identity, at: number): D1PreparedStatement | null {
+  const name = displayNameOf(identity)
+  if (!name) return null
+  return db
+    .prepare(
+      'INSERT INTO user_settings (sub, display_name, limit_micro, disabled, updated_at) VALUES (?, ?, NULL, 0, ?) ON CONFLICT(sub) DO UPDATE SET display_name = COALESCE(user_settings.display_name, excluded.display_name)'
+    )
+    .bind(identity.sub, name, at)
 }

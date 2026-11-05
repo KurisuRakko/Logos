@@ -6,6 +6,7 @@ import { Ledger, RESERVATION_TTL_MS, ensureAlarm } from './ledger'
 
 export const RATE_LIMIT_PER_MINUTE = 30
 export const LOG_RATE_LIMIT_PER_MINUTE = 10
+export const MT_RATE_LIMIT_PER_MINUTE = 60
 const RATE_WINDOW_MS = 60_000
 const SETTINGS_TTL_MS = 30_000
 
@@ -34,6 +35,8 @@ export class UserQuota extends DurableObject<Env> {
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS hits (ts INTEGER NOT NULL)')
     // 客户端日志上传单独计数，不占翻译限频。
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS log_hits (ts INTEGER NOT NULL)')
+    // /v1/mt 单独计数，不占 DeepSeek 翻译限频。
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS mt_hits (ts INTEGER NOT NULL)')
   }
 
   async reserve(sub: string, id: string, amount: number, now: number): Promise<ReserveResult> {
@@ -62,6 +65,18 @@ export class UserQuota extends DurableObject<Env> {
     if (hits >= LOG_RATE_LIMIT_PER_MINUTE) return false
     sql.exec('INSERT INTO log_hits (ts) VALUES (?)', now)
     return true
+  }
+
+  // /v1/mt 准入：停用用户拒绝，滑动窗口限频同翻译；不涉及金额额度（机器翻译只受全站字符额度约束）。
+  async allowMt(sub: string, now: number): Promise<{ ok: true } | { ok: false; code: 'user_disabled' | 'rate_limited' }> {
+    const settings = await this.loadSettings(sub, now)
+    if (settings.disabled) return { ok: false, code: 'user_disabled' }
+    const sql = this.ctx.storage.sql
+    sql.exec('DELETE FROM mt_hits WHERE ts <= ?', now - RATE_WINDOW_MS)
+    const hits = sql.exec<{ n: number }>('SELECT COUNT(*) AS n FROM mt_hits').one().n
+    if (hits >= MT_RATE_LIMIT_PER_MINUTE) return { ok: false, code: 'rate_limited' }
+    sql.exec('INSERT INTO mt_hits (ts) VALUES (?)', now)
+    return { ok: true }
   }
 
   async settle(sub: string, id: string, cost: number, now: number): Promise<QuotaSnapshot> {

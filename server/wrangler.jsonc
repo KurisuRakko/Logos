@@ -23,19 +23,29 @@
   "durable_objects": {
     "bindings": [
       { "name": "USER_QUOTA", "class_name": "UserQuota" },
-      { "name": "GLOBAL_QUOTA", "class_name": "GlobalQuota" }
+      { "name": "GLOBAL_QUOTA", "class_name": "GlobalQuota" },
+      // /v1/mt 全站字符额度，每个 provider 一个单例。
+      { "name": "MT_QUOTA", "class_name": "MtQuota" }
     ]
   },
   // Phainon /auth/me 走 service binding，避免同 zone Worker 互访 custom domain 被拒（1042）。
   "services": [{ "binding": "PHAINON", "service": "phainon" }],
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["UserQuota", "GlobalQuota"] }],
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["UserQuota", "GlobalQuota"] },
+    { "tag": "v2", "new_sqlite_classes": ["MtQuota"] }
+  ],
+  // /v1/mt provider=fallback 用 Workers AI（@cf/meta/m2m100-1.2b）。
+  "ai": { "binding": "AI" },
   "vars": {
     "PHAINON_BASE": "https://api.rakko.cn",
     "GLOBAL_MONTHLY_LIMIT_CNY": "200",
-    "DEFAULT_MONTHLY_LIMIT_CNY": "10"
+    "DEFAULT_MONTHLY_LIMIT_CNY": "10",
+    // /v1/mt 全站字符上限：百度按北京时间自然月，Workers AI 按 UTC 日。
+    "BAIDU_MONTHLY_CHARS": "50000",
+    "FALLBACK_DAILY_CHARS": "40000"
   },
   // 每日 UTC 19:17（北京时间 3:17）清理 30 天前的 client_logs。
   "triggers": { "crons": ["17 19 * * *"] },
   "observability": { "enabled": true }
-  // secret: DEEPSEEK_API_KEY（`wrangler secret put DEEPSEEK_API_KEY`）
+  // secret: DEEPSEEK_API_KEY（`wrangler secret put DEEPSEEK_API_KEY`）；BAIDU_APPID、BAIDU_KEY（/v1/mt provider=baidu，未配置时返回 provider_not_configured）
 }

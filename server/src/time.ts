@@ -11,3 +11,8 @@ export function nextMonthStart(at: number): string {
   const bj = new Date(at + BEIJING_OFFSET_MS)
   return new Date(Date.UTC(bj.getUTCFullYear(), bj.getUTCMonth() + 1, 1) - BEIJING_OFFSET_MS).toISOString()
 }
+
+// UTC 日，形如 2026-11-05。
+export function utcDay(at: number): string {
+  return new Date(at).toISOString().slice(0, 10)
+}

@@ -52,6 +52,7 @@ Cloudflare Worker，生产域名 `https://logos-api.rakko.cn`，代码在本仓�
 | GET | `/admin/api/usage?sub=&limit=` | admin。最近明细。 |
 | POST | `/v1/logs` | 鉴权（同 `/v1/*`，含 CORS）。客户端日志上传，见下「客户端日志」。 |
 | GET | `/admin/api/logs?sub=&level=&limit=` | admin。客户端日志，见下「客户端日志」。 |
+| POST | `/v1/mt` | 鉴权（同 `/v1/*`，含 CORS）。机器翻译（百度 / Workers AI），见下「机器翻译 /v1/mt」。错误体形状与本节不同。 |
 
 错误码：`unauthorized`(401)、`forbidden`(403)、`user_disabled`(403)、`quota_exhausted`(402)、`global_quota_exhausted`(503)、`rate_limited`(429)、`text_too_long`(400)、`upstream_error`(502)、`upstream_busy`(503，「翻译服务当前繁忙，请稍后重试。」)、`invalid_request`(400)。
 
@@ -75,6 +76,9 @@ CREATE TABLE client_logs (id INTEGER PRIMARY KEY, sub TEXT NOT NULL, created_at 
   message TEXT NOT NULL, context TEXT, app_version TEXT, os TEXT, client_time TEXT);
 CREATE INDEX client_logs_sub_created ON client_logs(sub, created_at);
 CREATE INDEX client_logs_created ON client_logs(created_at);
+-- 0003
+ALTER TABLE usage_log ADD COLUMN provider TEXT;   -- /v1/mt：baidu / fallback；DeepSeek 翻译为 NULL
+ALTER TABLE usage_log ADD COLUMN chars INTEGER;   -- /v1/mt 计费字符数；DeepSeek 翻译为 NULL
 ```
 `usage_log.error`：失败原因，成功为 NULL。取值 `upstream_<HTTP 状态>`（如 `upstream_503`）、`upstream_timeout`、`upstream_network`、`upstream_empty_body`、
 `stream_interrupted`（开流后上游中断、拿不到 usage）、`internal_error`。
@@ -82,8 +86,9 @@ DO 是额度的权威；usage_log 只供展示。DO 读取单人额度覆盖/停
 
 ## Secrets / vars
 
-- secret `DEEPSEEK_API_KEY`
-- var `PHAINON_BASE`、`GLOBAL_MONTHLY_LIMIT_CNY`、`DEFAULT_MONTHLY_LIMIT_CNY`（默认 10）
+- secret `DEEPSEEK_API_KEY`；`BAIDU_APPID`、`BAIDU_KEY`（/v1/mt provider=baidu，可不配）
+- var `PHAINON_BASE`、`GLOBAL_MONTHLY_LIMIT_CNY`、`DEFAULT_MONTHLY_LIMIT_CNY`（默认 10）、`BAIDU_MONTHLY_CHARS`（默认 50000）、`FALLBACK_DAILY_CHARS`（默认 40000）
+- binding `AI`（Workers AI）、DO `MT_QUOTA`（class `MtQuota`，迁移 tag v2）
 
 ## 翻译提示词
 
@@ -115,3 +120,27 @@ system：将用户提供的文本从 {from} 翻译为 {to}（from 为 auto 时�
 - 入库 `client_logs`，`created_at` 为服务端接收时刻（Unix 秒）。保留 30 天：cron trigger `17 19 * * *`（UTC，即北京时间 3:17）每日删除 `created_at` 早于 30 天的行。
 - `GET /admin/api/logs?sub=&level=&limit=`（admin）→ `{items: [{id, sub, display_name, created_at, level, event, message, context, app_version, os, client_time}]}`：
   按 created_at 倒序，limit 默认 100、上限 500；`created_at` 为 ISO；`context` 解析回 JSON（无则 null）；`display_name` 取自 user_settings，可为 null；`level` 非法 400。
+
+## 机器翻译 /v1/mt（2026-11-05 定）
+
+- `POST /v1/mt`，鉴权同 `/v1/translate`。body `{provider: "baidu" | "fallback", text, from, to}`，语言用 Logos 语言 key。
+  成功 200 `{text, provider}`（非流式）。
+- 错误体为扁平形状 `{error: <code>, message}`（不同于其他接口的 `{error: {code, message}}`），鉴权失败也按此形状返回：
+  `unauthorized`(401)、`bad_request`(400，body 非对象、provider 非法、text 为空或非字符串、from/to 非字符串)、`text_too_long`(413，原文超过 5000 字符，按码点计)、
+  `unsupported_language`(400)、`quota_exhausted`(429，全站字符额度用尽或百度账户余额不足)、`provider_not_configured`(503，百度密钥未配置)、`upstream_error`(502)，
+  另有 `rate_limited`(429，每用户限频)、`user_disabled`(403，管理页停用的用户)。Phainon 不可用时鉴权返回 `upstream_error`(502)。
+- 支持语言（两个 provider 相同）：`auto`（仅 from）、zh_cn、zh_tw、en、ja、ko、fr、es、ru、de、it、tr、pt_pt、pt_br、vi、id、th、ms、ar、hi；其余 key 一律 `unsupported_language`。
+  - baidu：映射同客户端 `src/services/translate/baidu/info.ts`（zh_cn→zh、zh_tw→cht、ja→jp、ko→kor、fr→fra、es→spa、pt_pt→pt、pt_br→pot、vi→vie、ms→may，其余同名），`auto` 原样传给百度。
+  - fallback（Workers AI `@cf/meta/m2m100-1.2b`）：ISO 639-1，zh_cn / zh_tw 均为 zh，pt_pt / pt_br 均为 pt。
+    `from: auto` 时由服务端判定源语言：原文含 CJK 统一表意文字（U+3400–4DBF、U+4E00–9FFF、U+F900–FAFF、U+20000–2FA1F）判 zh，否则判 en（仅假名、谚文等文本会误判为 en）。
+- 百度：`POST https://fanyi-api.baidu.com/api/trans/vip/translate`（form），sign = MD5(appid + q + salt + key)（纯 TS 实现，`src/md5.ts`），超时 15 秒，不重试。
+  多段 `trans_result[].dst` 以 `\n` 拼回。错误码：54004（余额不足）→ `quota_exhausted`；58001（语言方向不支持）→ `unsupported_language`；其余（58002 服务关闭、54001 签名错误、54003 限频等）及 HTTP 非 2xx / 网络错误 → `upstream_error`。
+- 准入顺序：校验 → 每用户限频（UserQuota DO 内独立计数 `mt_hits`，每分钟 60 次，不占 `/v1/translate` 限频；停用用户拒绝）→ 百度密钥检查 → 全站字符额度预留 → 调上游。
+- 全站字符额度（单例 DO `MtQuota`，idFromName(provider)，复用 Ledger，单位为字符）：
+  - baidu：`BAIDU_MONTHLY_CHARS`（默认 50000），北京时间自然月；fallback：`FALLBACK_DAILY_CHARS`（默认 40000），UTC 日。设为 0 即停用该 provider。
+  - 计费字符数取原文的 UTF-16 码元数（`text.length`，不小于码点数，比百度按字符计费的口径略保守）。
+  - 请求前预留，预留后超出上限则直接 `quota_exhausted`，不发上游请求；上游失败全额退回；成功按预留额结算。
+    预留后 Worker 中途失效、15 分钟未结算的，由 alarm 按预留额结算（只会多计，不会少计）。
+  - 该额度只约束全站总量，不计入个人金额额度（`/v1/quota`）。
+- usage_log：每个通过校验与限频的请求写一行，`provider`、`chars` 为计费字符数，token 与 `cost_micro` 为 0，`ok`/`error` 记结果；
+  `error` 取值 `provider_not_configured`、`quota_exhausted`、`baidu_<错误码>`、`upstream_<HTTP 状态>`、`upstream_timeout`、`upstream_network`、`upstream_bad_body`、`upstream_ai`。不记原文与译文。

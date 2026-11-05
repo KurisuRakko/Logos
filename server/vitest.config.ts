@@ -7,6 +7,8 @@ export default defineConfig(async () => {
     plugins: [
       cloudflareTest({
         wrangler: { configPath: './wrangler.jsonc' },
+        // 不连远端：AI binding 只能远端访问，测试里在 env 上换成 mock（见 test/mt.test.ts）。
+        remoteBindings: false,
         miniflare: {
           bindings: {
             TEST_MIGRATIONS: migrations,
