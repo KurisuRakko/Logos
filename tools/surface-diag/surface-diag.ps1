@@ -250,8 +250,11 @@ function Get-AppInstallInfo($AppCfg, $Processes) {
                         registryKey     = $e.PSPath -replace '^Microsoft\.PowerShell\.Core\\Registry::', ''
                     }
                     if (-not $exe -and $e.InstallLocation) {
+                        # some installers register the location wrapped in quotes
+                        $loc = ([string]$e.InstallLocation).Trim().Trim('"')
                         foreach ($n in @($AppCfg.exeNames)) {
-                            $c = Join-Path $e.InstallLocation $n
+                            if (-not $loc -or -not (Test-Path -LiteralPath $loc)) { break }
+                            $c = Join-Path $loc $n
                             if (Test-Path -LiteralPath $c) { $exe = $c; break }
                         }
                     }
