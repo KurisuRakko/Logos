@@ -436,6 +436,7 @@
             "mt_error": {
                 "not_logged_in": "You are not signed in to a Logos account. Sign in on the Logos Account page in Settings to use this translation service.",
                 "quota_exhausted": "The free allowance for this month has been used up. It will be restored at the beginning of next month.",
+                "user_disabled": "Logos services have been disabled for this account. Please contact the administrator.",
                 "bad_request": "The translation request is invalid. Please check the source text and language settings.",
                 "text_too_long": "The source text exceeds the length limit of this translation service. Please shorten it and try again.",
                 "unsupported_language": "This translation service does not support the selected language.",

@@ -433,6 +433,7 @@
             "mt_error": {
                 "not_logged_in": "尚未登入 Logos 帳號，請在設定的「Logos 帳號」頁面登入後再使用此翻譯服務。",
                 "quota_exhausted": "本月免費額度已用完，將於下月初恢復。",
+                "user_disabled": "該帳號的 Logos 服務已被停用，請聯絡管理員。",
                 "bad_request": "翻譯請求無效，請檢查原文與語言設定。",
                 "text_too_long": "原文超出此翻譯服務的長度上限，請縮短後重試。",
                 "unsupported_language": "此翻譯服務不支援所選語言。",

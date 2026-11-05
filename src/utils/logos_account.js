@@ -124,13 +124,14 @@ const MT_ERROR_KEYS = [
     'text_too_long',
     'unsupported_language',
     'quota_exhausted',
+    'user_disabled',
     'provider_not_configured',
     'upstream_error',
 ];
 
 // POST /v1/mt: plain machine translation billed against the account's monthly free allowance.
 // provider is 'baidu' or 'fallback'; from/to are Logos language keys. Errors come back flat as
-// {error, message}, unlike the {error: {code, message}} of the Logos AI endpoints.
+// {error, message}; unhandled server exceptions still use the nested {error: {code, message}}.
 export async function logosMachineTranslate(provider, text, from, to) {
     let token;
     try {
